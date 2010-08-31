@@ -4,7 +4,7 @@ use base 'Mojolicious::Plugin::Cms::Store';
 use strict;
 use warnings;
 
-__PACKAGE__->attr(cache => sub { $_[0]->cms->cache });
+__PACKAGE__->attr(cache => sub { $_[0]->cms->cache });	
 __PACKAGE__->attr(store => sub { $_[0]->cms->store });
 
 sub exists {

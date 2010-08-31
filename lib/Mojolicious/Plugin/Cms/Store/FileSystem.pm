@@ -70,7 +70,7 @@ sub load {
 
     my $f  = Path::Class::File->new($path);
     my $rc = Mojolicious::Plugin::Cms::Content->new(
-        data     => '' . $f->slurp(iomode => '<' . $self->binmode_layer),
+        raw     => '' . $f->slurp(iomode => '<' . $self->binmode_layer),
         modified => $f->stat->mtime,
         language => $_[-1],
     );
