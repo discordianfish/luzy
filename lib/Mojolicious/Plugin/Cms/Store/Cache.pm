@@ -4,9 +4,8 @@ use base 'Mojolicious::Plugin::Cms::Store';
 use strict;
 use warnings;
 
-__PACKAGE__->attr([qw/cms/]);
-__PACKAGE__->attr(store => sub { $_[0]->cms->store });
 __PACKAGE__->attr(cache => sub { $_[0]->cms->cache });
+__PACKAGE__->attr(store => sub { $_[0]->cms->store });
 
 sub exists {
     my $self = shift;

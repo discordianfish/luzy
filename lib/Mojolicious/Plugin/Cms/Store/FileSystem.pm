@@ -10,11 +10,11 @@ use Path::Class ();
 
 use Mojolicious::Plugin::Cms::Content ();
 
+__PACKAGE__->attr(binmode_layer => ':encoding(utf8)');
 __PACKAGE__->attr(directory => 'content');
 __PACKAGE__->attr(extension => '.cms');
 __PACKAGE__->attr(
     make_options => sub { {owner => 'nobody', group => 'nogroup'} });
-__PACKAGE__->attr(binmode_layer => ':encoding(utf8)');
 
 sub path_to {
     my $self = shift;

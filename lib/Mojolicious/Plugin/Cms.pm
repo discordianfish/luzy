@@ -22,10 +22,10 @@ __PACKAGE__->attr(app => undef);
 __PACKAGE__->attr(
     cache => sub { Cache::FileCache->new($_[0]->conf->{cache_options}) });
 __PACKAGE__->attr(conf => sub { {} });
-__PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(app => $_[0]->app) });
-__PACKAGE__->attr(
-    _store => sub { $NS_STORE_CAC->new(app => $_[0]->app, cms => $_[0]) });
 __PACKAGE__->attr(default => sub { $_[0]->conf->{default} || '_default' });
+__PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0]) });
+__PACKAGE__->attr(
+    _store => sub { $NS_STORE_CAC->new(cms => $_[0]) });
 
 sub register {
     my ($self, $app, $conf) = @_;
