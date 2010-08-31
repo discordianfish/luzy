@@ -6,17 +6,32 @@ use overload '""' => sub { shift->raw };
 use warnings;
 use strict;
 
-__PACKAGE__->attr([qw/language path raw/]);
+use Scalar::Util qw/blessed/;
+
+my @META_ATTRS = qw/title/;
+my @DATA_ATTRS = qw/language path raw/;
+
+__PACKAGE__->attr([@DATA_ATTRS, @META_ATTRS]);
 __PACKAGE__->attr(modified => sub {time});
 
-sub set_from {
+sub update_from {
     my ($self, $req) = @_;
 
-    foreach my $p (qw/language path raw/) {
-        $self->$p($req->param($p) || '');
+    my $getter =
+      blessed($req)
+      ? sub { $req->param($_[0]) }
+      : sub { exists $req->{$_[0]} ? $req->{$_[0]} : undef };
+    foreach my $p (@DATA_ATTRS, @META_ATTRS) {
+        my $val = $getter->($p);
+        $self->$p($val) if defined $val;
     }
 
     return $self;
+}
+
+sub meta_data {
+    my $self = shift;
+    return {map { $_ => $self->$_ || '' } @META_ATTRS};
 }
 
 sub save_to {

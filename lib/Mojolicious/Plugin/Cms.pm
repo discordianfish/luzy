@@ -4,12 +4,11 @@ use base 'Mojolicious::Plugin';
 use strict;
 use warnings;
 
-use I18N::LangTags;
-use I18N::LangTags::Detect;
+use Cache::FileCache ();
+use I18N::LangTags ();
+use I18N::LangTags::Detect ();
 
 our $VERSION = '0.01';
-
-use Cache::FileCache;
 
 use Mojolicious::Plugin::Cms::Store::Cache;
 use Mojolicious::Plugin::Cms::Store::FileSystem;

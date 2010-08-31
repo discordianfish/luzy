@@ -22,6 +22,9 @@ app->start;
 
 __DATA__
 @@ cms.html.ep
-%== $cms_content
+<html><body>
+<h1><%= $cms_content->title %></h1>
+<%= $cms_content->raw %>
+</body></html>
 
 __END__

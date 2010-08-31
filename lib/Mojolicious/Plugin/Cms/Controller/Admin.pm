@@ -19,7 +19,7 @@ sub save {
     }
 
     my $c = Mojolicious::Plugin::Cms::Content->new;
-    $c->set_from($self);
+    $c->update_from($self);
 
     # do some path fixing
     my $p = Mojo::Path->new($c->path || '/');

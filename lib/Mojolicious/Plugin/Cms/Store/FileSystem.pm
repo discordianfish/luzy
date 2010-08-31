@@ -7,12 +7,18 @@ use warnings;
 use File::Basename;
 use File::Spec  ();
 use Path::Class ();
+use Mojo::JSON  ();
+
+my $META_START = "<!-- Mojolicious::Plugin::Cms::Content";
+my $META_END   = "-->";
+my $META_REGEX =
+  qr/[\r\n\s]*?$META_START[\r\n\s]*?({.*})[\r\n\s]*?$META_END[\r\n\s]*$/is;
 
 use Mojolicious::Plugin::Cms::Content ();
 
 __PACKAGE__->attr(binmode_layer => ':encoding(utf8)');
-__PACKAGE__->attr(directory => 'content');
-__PACKAGE__->attr(extension => '.cms');
+__PACKAGE__->attr(directory     => 'content');
+__PACKAGE__->attr(extension     => '.cms');
 __PACKAGE__->attr(
     make_options => sub { {owner => 'nobody', group => 'nogroup'} });
 
@@ -68,13 +74,19 @@ sub load {
     my $path = $self->path_to(reverse @_);
     return undef unless defined $path;
 
-    my $f  = Path::Class::File->new($path);
+    my $f = Path::Class::File->new($path);
+    my $raw = $f->slurp(iomode => '<' . $self->binmode_layer) || '';
+    my $meta;
+    if ($raw =~ s/$META_REGEX//) {
+        $meta = Mojo::JSON->new->decode($1);
+    }
     my $rc = Mojolicious::Plugin::Cms::Content->new(
-        raw     => '' . $f->slurp(iomode => '<' . $self->binmode_layer),
+        raw      => $raw,
         modified => $f->stat->mtime,
         language => $_[-1],
     );
-    $self->app->log->debug('Content loaded.');
+    $rc->update_from($meta) if defined $meta;
+    $self->app->log->info('Content loaded.');
     return $rc;
 }
 
@@ -90,7 +102,10 @@ sub save {
 
     if (defined(my $fh = $f->open('w'))) {
         $fh->binmode($self->binmode_layer);
-        print $fh '' . $content;
+        print $fh $content->raw;
+        print $fh "\n$META_START\n"
+          . Mojo::JSON->new->encode($content->meta_data)
+          . "\n$META_END";
         return $content;
     }
 

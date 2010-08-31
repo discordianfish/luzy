@@ -34,6 +34,10 @@ sub load {
         $rc = $self->store->load(@_);
         $self->cache->set($id, $rc) if defined $rc;
     }
+	else
+	{
+		$self->app->log->info('Content loaded from cache.');
+	}
     return $rc;
 }
 
