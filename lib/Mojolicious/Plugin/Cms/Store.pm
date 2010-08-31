@@ -6,7 +6,7 @@ use strict;
 
 use Carp ();
 
-__PACKAGE__->attr( [qw/app/] );
+__PACKAGE__->attr([qw/app/]);
 
 sub exists { Carp::croak 'Method unimplemented by subclass!' }
 

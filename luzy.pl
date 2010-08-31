@@ -16,7 +16,7 @@ plugin cms => {
     }
 };
 
-get '/(*everything)' => ( cms => 1 ) => 'cms';
+get '/(*everything)' => (cms => 1) => 'cms';
 
 app->start;
 
