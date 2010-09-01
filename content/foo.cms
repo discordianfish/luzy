@@ -1,6 +1,2 @@
+<!-- METADATA { "title":"foo bar" } -->
 UHU
-<!-- Mojolicious::Plugin::Cms::Content
-{ 
-	"title":"foo bar"
-}
--->

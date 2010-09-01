@@ -9,10 +9,10 @@ use File::Spec  ();
 use Path::Class ();
 use Mojo::JSON  ();
 
-my $META_START = "<!-- Mojolicious::Plugin::Cms::Content";
-my $META_END   = "-->";
+my $META_START = "<!-- METADATA ";
+my $META_END   = " -->";
 my $META_REGEX =
-  qr/[\r\n\s]*?$META_START[\r\n\s]*?({.*})[\r\n\s]*?$META_END[\r\n\s]*$/is;
+  qr/[\r\n\s]*<!--[\r\n\s]*METADATA[\r\n\s]*({.*})[\r\n\s]*-->[\r\n\s]*/is;
 
 use Mojolicious::Plugin::Cms::Content ();
 
@@ -102,10 +102,8 @@ sub save {
 
     if (defined(my $fh = $f->open('w'))) {
         $fh->binmode($self->binmode_layer);
+		print $fh sprintf("%s%s%s\n", $META_START, Mojo::JSON->new->encode($content->meta_data), $META_END );
         print $fh $content->raw;
-        print $fh "\n$META_START\n"
-          . Mojo::JSON->new->encode($content->meta_data)
-          . "\n$META_END";
         return $content;
     }
 
