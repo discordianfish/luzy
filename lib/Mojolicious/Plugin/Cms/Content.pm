@@ -14,6 +14,17 @@ my @DATA_ATTRS = qw/language path raw/;
 __PACKAGE__->attr([@DATA_ATTRS, @META_ATTRS]);
 __PACKAGE__->attr(modified => sub {time});
 
+sub meta_data {
+    my $self = shift;
+	
+	return {map { $_ => $self->$_ || '' } @META_ATTRS};
+}
+
+sub save_to {
+    my ($self, $store) = @_;
+    return $store->save($self->path, $self->language, $self);
+}
+
 sub update_from {
     my ($self, $req) = @_;
 
@@ -27,17 +38,6 @@ sub update_from {
     }
 
     return $self;
-}
-
-sub meta_data {
-    my $self = shift;
-    return {map { $_ => $self->$_ || '' } @META_ATTRS};
-}
-
-sub save_to {
-    my ($self, $store) = @_;
-
-    return $store->save($self->path, $self->language, $self);
 }
 
 1;
