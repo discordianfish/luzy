@@ -7,6 +7,9 @@ use warnings;
 __PACKAGE__->attr(cache => sub { $_[0]->cms->cache });	
 __PACKAGE__->attr(store => sub { $_[0]->cms->store });
 
+# backup to the store only, don't cache it
+sub backup { shift->store->backup(@_) }
+
 sub exists {
     my $self = shift;
 
@@ -40,6 +43,9 @@ sub load {
 	}
     return $rc;
 }
+
+# restore from the store only, not from the cache
+sub restore { shift->store->restore(@_) }
 
 sub save {
     my $self    = shift;

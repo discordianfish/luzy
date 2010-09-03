@@ -4,8 +4,8 @@ use base 'Mojolicious::Plugin';
 use strict;
 use warnings;
 
-use Cache::FileCache ();
-use I18N::LangTags ();
+use Cache::FileCache       ();
+use I18N::LangTags         ();
 use I18N::LangTags::Detect ();
 
 our $VERSION = '0.01';
@@ -20,11 +20,10 @@ my $NS_STORE_CAC = "$NS_STORE\::Cache";
 __PACKAGE__->attr(app => undef);
 __PACKAGE__->attr(
     cache => sub { Cache::FileCache->new($_[0]->conf->{cache_options}) });
-__PACKAGE__->attr(conf => sub { {} });
+__PACKAGE__->attr(conf    => sub { {} });
 __PACKAGE__->attr(default => sub { $_[0]->conf->{default} || '_default' });
-__PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0]) });
-__PACKAGE__->attr(
-    _store => sub { $NS_STORE_CAC->new(cms => $_[0]) });
+__PACKAGE__->attr(store   => sub { $NS_STORE_DEF->new(cms => $_[0]) });
+__PACKAGE__->attr(_store  => sub { $NS_STORE_CAC->new(cms => $_[0]) });
 
 sub register {
     my ($self, $app, $conf) = @_;
@@ -67,10 +66,7 @@ sub register {
     $app->routes->add_condition(
         cms => sub {
             my ($route, $tx, $captures, $arg) = @_;
-
             return ($arg && $content) ? $captures : undef;
-
-            #return ($arg) ? $captures : undef;
         }
     );
 
@@ -85,6 +81,23 @@ sub register {
     }
 
     $app->log->info('Cms loaded');
+
+    # No admin functionality needed shortcut
+    return if $conf->{no_admin_route};
+
+    my $r = $conf->{admin_route};
+    $r = $app->routes->bridge('/admin')    # ->to( cb => sub { 1 } )
+      unless defined $r;
+
+    # Admin routes
+    my %defaults = (
+        namespace  => 'Mojolicious::Plugin::Cms::Controller',
+        controller => 'admin',
+        cb => undef,                       # overwrite bridges with callbacks
+    );
+    $r->route('/')->to(%defaults, action => 'list')->name('cms_admin_list');
+    $r->route('/edit(*path)', path => qr(/.*))
+      ->to(%defaults, action => 'edit')->name('cms_admin_edit');
 }
 
 1;
