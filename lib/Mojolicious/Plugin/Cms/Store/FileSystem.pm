@@ -5,10 +5,13 @@ use strict;
 use warnings;
 
 use Carp;
-use File::Basename;
-use File::Spec  ();
-use Mojo::JSON  ();
-use Path::Class ();
+use IO::Dir    ();
+use IO::File   ();
+use File::Path ();
+use File::stat ();
+use File::Spec ();
+use Mojo::JSON ();
+
 
 my $META_START = "<!-- METADATA ";
 my $META_END   = " -->";
@@ -38,10 +41,11 @@ sub backup {
 
     $content->id($path) unless defined $content->id;
 
-    my $f = Path::Class::File->new($path);
-    $f->dir->mkpath($self->make_options);
+    my (undef, $dir, undef) = File::Spec->splitpath($path, 1);
+    File::Path::make_path($dir, $self->make_options)
+      unless -d $dir;
 
-    if (defined(my $fh = $f->open('w'))) {
+    if (defined(my $fh = IO::File->new("> $path"))) {
         $fh->binmode($self->binmode_layer);
         print $fh sprintf("%s%s%s\n",
             $META_START, Mojo::JSON->new->encode($content->meta_data),
@@ -66,16 +70,19 @@ sub _list {
     my $ext = $self->extension;
 
     my @retval = ();
-    while (my $e = $dir->next) {
+    my $handle = IO::Dir->new($dir);
+    while (defined($handle) && defined(my $e = $handle->read)) {
         next if $e =~ m{^\.\.?};
 
-        if ($e->is_dir) {
-            push @retval, $self->_list($e);
+        my $path = File::Spec->catfile($dir, $e);
+        if (-d $path) {
+            push @retval, $self->_list($path);
         }
-        else {
-            my ($f, $d, $s) = fileparse($e, $self->extension);
-            next unless lc($s || '') eq lc $self->extension;
-            push @retval, $d . $f;
+        elsif (-f $path && -r $path) {
+            next unless $path =~ m/$ext$/i;
+
+            my $c = $self->_load_content($path);
+            push @retval, $c if defined $c;
         }
     }
     return @retval;
@@ -84,8 +91,39 @@ sub _list {
 sub list {
     my $self = shift;
 
+    my @path = File::Spec->no_upwards(grep {$_} @_);
+
     my $dir = $self->app->home->rel_dir($self->directory);
-    return $self->_list(Path::Class::Dir->new($dir));
+    $dir = File::Spec->catdir($dir, @path) if @path;
+    return [$self->_list($dir)];
+}
+
+# really slow by itself, always use a cache
+sub _list_by {
+    my $self   = shift;
+    my $what   = lc shift;
+    my $value  = shift or croak ucfirst($what) . ' not defined';
+    my $method = "has_$what";
+
+    my $list = $self->list(@_);
+
+
+    my $retval = [];
+    foreach my $c (@$list) {
+        push @$retval, $c if $c->$method($value);
+    }
+
+    return $retval;
+}
+
+sub list_by_tag {
+    my $self = shift;
+    return $self->_list_by(tag => @_);
+}
+
+sub list_by_category {
+    my $self = shift;
+    return $self->_list_by(category => @_);
 }
 
 sub load {
@@ -105,6 +143,35 @@ sub path_to {
     return $path;
 }
 
+sub _load_content {
+    my ($self, $path, $timestamp) = @_;
+
+    return undef unless -f $path && -r $path;
+
+    my $stat = File::stat::stat($path);
+    my $retval;
+    if (defined(my $fh = IO::File->new("< $path"))) {
+        $fh->binmode($self->binmode_layer);
+
+        my $raw = do { local $/; <$fh> };
+        my $meta;
+        if ($raw =~ s/$META_REGEX//) {
+            $meta = Mojo::JSON->new->decode($1);
+        }
+        $retval = Mojolicious::Plugin::Cms::Content->new(
+            id       => $path,
+            language => $_[-1],
+            modified => $timestamp || $stat->mtime,
+            raw      => $raw,
+        );
+        $retval->update_from($meta)
+          if defined $meta;
+
+        $self->app->log->info('Content loaded.');
+    }
+    return $retval;
+}
+
 sub restore {
     my $self      = shift;
     my $timestamp = pop;
@@ -116,23 +183,7 @@ sub restore {
 
     $path .= '.' . $timestamp if $timestamp;
 
-    return undef unless -f $path && -r $path;
-
-    my $f = Path::Class::File->new($path);
-    my $raw = $f->slurp(iomode => '<' . $self->binmode_layer) || '';
-    my $meta;
-    if ($raw =~ s/$META_REGEX//) {
-        $meta = Mojo::JSON->new->decode($1);
-    }
-    my $rc = Mojolicious::Plugin::Cms::Content->new(
-        id       => $path,
-        language => $_[-1],
-        modified => $timestamp || $f->stat->mtime,
-        raw      => $raw,
-    );
-    $rc->update_from($meta) if defined $meta;
-    $self->app->log->info('Content loaded.');
-    return $rc;
+    return $self->_load_content($path, $timestamp);
 }
 
 sub save {

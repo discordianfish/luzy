@@ -15,6 +15,10 @@ sub exists { Carp::croak 'Method unimplemented by subclass!' }
 
 sub list { Carp::croak 'Method unimplemented by subclass!' }
 
+sub list_by_category { Carp::croak 'Method unimplemented by subclass!' }
+
+sub list_by_tag { Carp::croak 'Method unimplemented by subclass!' }
+
 sub load { Carp::croak 'Method unimplemented by subclass!' }
 
 sub restore { Carp::croak 'Method unimplemented by subclass!' }

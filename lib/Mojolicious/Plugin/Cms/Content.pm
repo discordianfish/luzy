@@ -7,6 +7,7 @@ use warnings;
 use overload '""' => sub { shift->raw };
 
 use Scalar::Util qw/blessed/;
+use List::Util qw/first/;
 
 my %META_ATTRS = (
     tags       => [],
@@ -24,8 +25,18 @@ foreach my $hash (\%META_ATTRS, \%DATA_ATTRS) {
         __PACKAGE__->attr($k => sub {$v});
     }
 }
-__PACKAGE__->attr(id => undef
-__PACKAGE__->attr(modified => sub {time}););
+__PACKAGE__->attr(id => undef);
+__PACKAGE__->attr(modified => sub {time});
+
+sub has_category {
+    my ($self, $category) = @_;
+    return first { lc($_) eq lc($category) } @{$self->categories};
+}
+
+sub has_tag {
+    my ($self, $tag) = @_;
+    return first { lc($_) eq lc($tag) } @{$self->tags};
+}
 
 sub meta_data {
     my $self = shift;
@@ -43,7 +54,7 @@ sub _update_from_group {
 
     while (my ($gkey, $gval) = each %$group) {
         my $value = $getter->($gkey);
-        $self->$gkey($val) if defined $val;
+        $self->$gkey($value) if defined $value;
     }
 }
 
