@@ -1,0 +1,104 @@
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td {
+background:transparent;
+border:0;
+outline:0;
+margin:0;
+padding:0;
+}
+
+html,body {
+height:100%;
+}
+
+body,td,textarea,input,select {
+font-family:"Lucida Grande",Verdana,Arial,"Bitstream Vera Sans",sans-serif;
+font-size:1em;
+}
+
+body,textarea {
+line-height:1.4em;
+}
+
+textarea,input,select {
+margin:1px;
+padding:3px;
+}
+
+input,select {
+line-height:15px;
+}
+
+ol,ul {
+list-style:none;
+}
+
+p {
+margin:1em 0;
+}
+
+table.fixed {
+table-layout:fixed;
+}
+
+.fixed .column-categories,.fixed .column-tags {
+width:15%;
+}
+
+.wideluzy {
+-khtml-border-radius:4px;
+-moz-border-radius:4px;
+-webkit-border-radius:4px;
+border-radius:4px;
+border-spacing:0;
+clear:both;
+width:90%;
+border-color:#dfdfdf;
+border-style:solid;
+border-width:1px;
+margin:0 auto;
+}
+
+.wideluzy * {
+word-wrap:break-word;
+}
+
+.wideluzy .check-column {
+width:2.2em;
+padding:0;
+}
+
+.wideluzy tbody th.check-column {
+vertical-align:top;
+padding:7px 0;
+}
+
+.wideluzy td {
+vertical-align:top;
+padding:3px 7px;
+}
+
+.wideluzy td p,.wideluzy td ol,.wideluzy td ul {
+font-size:11px;
+}
+
+.wideluzy td,.wideluzy th {
+font-size:.75em;
+}
+
+.wideluzy th {
+line-height:1.3em;
+text-align:left;
+text-shadow:rgba(255,255,255,0.8) 0 1px 0;
+padding:7px 7px 8px;
+}
+
+.wideluzy th input {
+vertical-align:text-top;
+margin:0 0 0 8px;
+padding:0;
+}
+
+.wideluzy thead tr th,.wideluzy tfoot tr th {
+background:#dfdfdf url(/images/admin-gray-grad.png) repeat-x scroll left top;
+color:#333;
+}
