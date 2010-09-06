@@ -77,6 +77,11 @@ vertical-align:top;
 padding:3px 7px;
 }
 
+.wideluzy td.check-column {
+vertical-align:top;
+padding:7px 7px;
+}
+
 .wideluzy td p,.wideluzy td ol,.wideluzy td ul {
 font-size:11px;
 }

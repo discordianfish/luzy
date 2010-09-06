@@ -11,7 +11,7 @@
 <% my $list = cms_list; %>
 <% foreach my $content ( @$list ) { %>
 <tr>
-	<td><input type="checkbox" /></td>
+	<td class="check-column"><input type="checkbox" /></td>
 	<td><%= $content->title %></td>
 	<td><%= $content->path %></td>
 	<td><%= $content->categories_to_string || '(none)' %></td>

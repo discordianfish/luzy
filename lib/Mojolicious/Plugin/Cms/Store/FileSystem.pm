@@ -95,7 +95,10 @@ sub list {
 
     my $dir = $self->app->home->rel_dir($self->directory);
     $dir = File::Spec->catdir($dir, @path) if @path;
-    return [$self->_list($dir)];
+
+    my @list = $self->_list($dir);
+    my @sorted = sort { $a->id cmp $b->id } @list;
+    return \@sorted;
 }
 
 # really slow by itself, always use a cache
