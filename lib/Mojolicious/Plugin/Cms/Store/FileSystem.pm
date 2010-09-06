@@ -152,12 +152,12 @@ sub _load_content {
     my $id  = $fs_path;
 
     # alot of dump hacking here
-    $id =~ s/^\Q$dir\E//i;
-    $id =~ tr/\\/\//;
+    $id =~ s{^\Q$dir\E}{}i;
+    $id =~ tr{\\}{\/};
     unless ($path) {
         $path = $id;
         croak "Unable to retrieve access path and language from filesystem path."
-          unless $path =~ s/\.?([\w\-]*)$ext$/$1/i;
+          unless $path =~ s{(\.([\w\-]+))?\Q$ext\E$}{}i;
         $language = lc($2 || '');
     }
 
@@ -168,7 +168,7 @@ sub _load_content {
 
         my $raw = do { local $/; <$fh> };
         my $meta;
-        if ($raw =~ s/$META_REGEX//) {
+        if ($raw =~ s{$META_REGEX}{}) {
             $meta = Mojo::JSON->new->decode($1);
         }
         $retval = Mojolicious::Plugin::Cms::Content->new(
