@@ -7,7 +7,9 @@ use warnings;
 use Mojo::Path;
 use Mojolicious::Plugin::Cms::Content;
 
-sub save {
+sub list { }
+
+sub edit {
     my $self = shift;
 
     # check required parameters

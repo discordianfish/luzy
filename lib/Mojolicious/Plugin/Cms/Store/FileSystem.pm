@@ -15,16 +15,14 @@ use Mojo::JSON ();
 
 my $META_START = "<!-- METADATA ";
 my $META_END   = " -->";
-my $META_REGEX =
-  qr/[\r\n\s]*<!--[\r\n\s]*METADATA[\r\n\s]*({.*})[\r\n\s]*-->[\r\n\s]*/is;
+my $META_REGEX = qr/[\r\n\s]*<!--[\r\n\s]*METADATA[\r\n\s]*({.*})[\r\n\s]*-->[\r\n\s]*/is;
 
 use Mojolicious::Plugin::Cms::Content ();
 
 __PACKAGE__->attr(binmode_layer => ':encoding(utf8)');
-__PACKAGE__->attr(directory     => 'content');
+__PACKAGE__->attr(directory     => sub { $_[0]->app->home->rel_dir('content') });
 __PACKAGE__->attr(extension     => '.cms');
-__PACKAGE__->attr(
-    make_options => sub { {owner => 'nobody', group => 'nogroup'} });
+__PACKAGE__->attr(make_options  => sub { {owner => 'nobody', group => 'nogroup'} });
 
 sub backup {
     my ($self, $path, $language, $content, $timestamp) = @_;
@@ -48,8 +46,7 @@ sub backup {
     if (defined(my $fh = IO::File->new("> $path"))) {
         $fh->binmode($self->binmode_layer);
         print $fh sprintf("%s%s%s\n",
-            $META_START, Mojo::JSON->new->encode($content->meta_data),
-            $META_END);
+            $META_START, Mojo::JSON->new->encode($content->meta_data), $META_END);
         print $fh $content->raw;
         return $content;
     }
@@ -93,10 +90,9 @@ sub list {
 
     my @path = File::Spec->no_upwards(grep {$_} @_);
 
-    my $dir = $self->app->home->rel_dir($self->directory);
-    $dir = File::Spec->catdir($dir, @path) if @path;
-
-    my @list = $self->_list($dir);
+    my $path = $self->directory;
+    $path = File::Spec->catdir($path, @path) if @path;
+    my @list = $self->_list($path);
     my @sorted = sort { $a->id cmp $b->id } @list;
     return \@sorted;
 }
@@ -105,7 +101,7 @@ sub list {
 sub _list_by {
     my $self   = shift;
     my $what   = lc shift;
-    my $value  = shift or croak ucfirst($what) . ' not defined';
+    my $value  = shift or croak ucfirst($what) . ' parameter not defined';
     my $method = "has_$what";
 
     my $list = $self->list(@_);
@@ -140,9 +136,7 @@ sub path_to {
 
     return undef unless my @path = File::Spec->no_upwards(grep {$_} @_);
 
-    my $dir = $self->app->home->rel_dir($self->directory);
-
-    my $retval = File::Spec->catfile($dir, @path);
+    my $retval = File::Spec->catfile($self->directory, @path);
     $retval .= ".$language" if $language;
     $retval .= $self->extension;
     return $retval;
@@ -153,18 +147,18 @@ sub _load_content {
 
     return undef unless -f $fs_path && -r $fs_path;
 
-	my $ext = $self->extension;
-    my $dir = $self->app->home->rel_dir($self->directory);
-	my $id = $fs_path; 
-	
-	# alot of dump hacking here
-	$id =~ s/^\Q$dir\E//i;
-	$id =~ tr/\\/\//;
-    unless ($path) {                
+    my $ext = $self->extension;
+    my $dir = $self->directory;
+    my $id  = $fs_path;
+
+    # alot of dump hacking here
+    $id =~ s/^\Q$dir\E//i;
+    $id =~ tr/\\/\//;
+    unless ($path) {
         $path = $id;
         croak "Unable to retrieve access path and language from filesystem path."
-          unless $path =~ s/\.?([\w\-]*)$ext$/$1/i;        
-        $language = lc $2;
+          unless $path =~ s/\.?([\w\-]*)$ext$/$1/i;
+        $language = lc($2 || '');
     }
 
     my $stat = File::stat::stat($fs_path);
