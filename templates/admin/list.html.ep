@@ -1,0 +1,27 @@
+% layout 'admin';
+<table class="wideluzy fixed" cellspacing="0">
+<thead><tr>
+	<th scope="col" id="head_cb" class="check-column"><input type="checkbox" /></th>
+	<th scope="col" id="head_title" class="column-title">Title</th>
+	<th scope="col" id="head_categories" class="column-categories">Categories</th>
+	<th scope="col" id="head_tags" class="column-tags">Tags</th>
+	<th scope="col" id="head_date" class="column-date">Date</th>
+</tr></thead>
+<% my $list = cms_list; %>
+<% foreach my $content ( @$list ) { %>
+<tr>
+	<td><input type="checkbox" /></td>
+	<td><%= $content->title %></td>
+	<td><%= $content->categories_to_string || '(none)' %></td>
+	<td><%= $content->tags_to_string || '(none)' %></td>
+	<td><%= $content->modified %></td>
+</tr>
+<% } %>
+<tfoot><tr>
+	<th scope="col" id="foot_cb" class="column-cb check-column"><input type="checkbox" /></th>
+	<th scope="col" id="foot_title" class="column-title">Title</th>
+	<th scope="col" id="foot_categories" class="column-categories">Categories</th>
+	<th scope="col" id="foot_tags" class="column-tags">Tags</th>
+	<th scope="col" id="foot_date" class="column-date">Date</th>
+</tr></tfoot>
+</title>
