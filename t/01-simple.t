@@ -7,7 +7,7 @@ BEGIN {
 
 use Mojolicious::Lite;
 use Test::Mojo;
-use Test::More tests => 4;
+use Test::More tests => 6;
 
 app->log->level('error');
 
@@ -29,6 +29,7 @@ my $t = Test::Mojo->new;
 # Pages
 $t->get_ok('/foo')->content_like(qr{this is /foo});
 $t->get_ok('/foo/uhu')->content_like(qr{this is /foo/uhu});
+$t->get_ok('/foo/uhu', {'Accept-Language' => 'de'})->content_like(qr{das ist /foo/uhu}); 
 
 
 __DATA__
