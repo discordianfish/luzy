@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Cache::FileCache       ();
+use DateTime               ();
 use I18N::LangTags         ();
 use I18N::LangTags::Detect ();
 
@@ -79,7 +80,18 @@ sub register {
             }
         );
     }
-
+	
+	# Format heplers
+	foreach my $method (['date', '%d.%m.%Y'], ['time', '%T'], ['datetime', '%d.%m.%Y %T']) {
+		$app->renderer->add_helper(	
+			'cms_format_' . $method->[0] => sub {
+				my ($c, $epoch, $format) = @_;
+				$format ||= $method->[1];
+				return DateTime->from_epoch( epoch => $epoch )->strftime( $format );
+			}
+		);
+	}
+		
     $app->log->info('Cms loaded');
 
     # No admin functionality needed shortcut
