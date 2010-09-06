@@ -27,11 +27,11 @@ __PACKAGE__->attr(
     make_options => sub { {owner => 'nobody', group => 'nogroup'} });
 
 sub backup {
-    my $self      = shift;
-    my $content   = pop;
-    my $timestamp = pop || $content->modified || time;
+    my ($self, $path, $language, $content, $timestamp) = @_;
 
-    my $path = $self->path_to(reverse @_);
+    $timestamp ||= $content->modified || time;
+
+    $path = $self->path_to($path, $language);
     return undef unless defined $path;
 
     $path .= '.' . $timestamp if $timestamp;
@@ -60,7 +60,7 @@ sub backup {
 sub exists {
     my $self = shift;
 
-    my $path = $self->path_to(reverse @_);
+    my $path = $self->path_to(@_);
     return defined $path ? -f $path : undef;
 }
 
@@ -81,7 +81,7 @@ sub _list {
         elsif (-f $path && -r $path) {
             next unless $path =~ m/$ext$/i;
 
-            my $c = $self->_load_content($path);
+            my $c = $self->_load_content($path, undef, undef);
             push @retval, $c if defined $c;
         }
     }
@@ -106,7 +106,6 @@ sub _list_by {
     my $method = "has_$what";
 
     my $list = $self->list(@_);
-
 
     my $retval = [];
     foreach my $c (@$list) {
@@ -133,24 +132,40 @@ sub load {
 }
 
 sub path_to {
-    my $self = shift;
+    my $self     = shift;
+    my $language = pop;
 
     return undef unless my @path = File::Spec->no_upwards(grep {$_} @_);
 
     my $dir = $self->app->home->rel_dir($self->directory);
-    my $path = File::Spec->catfile($dir, @path) . $self->extension;
 
-    return $path;
+    my $retval = File::Spec->catfile($dir, @path);
+    $retval .= ".$language" if $language;
+    $retval .= $self->extension;
+    return $retval;
 }
 
 sub _load_content {
-    my ($self, $path, $timestamp) = @_;
+    my ($self, $fs_path, $path, $language, $timestamp) = @_;
 
-    return undef unless -f $path && -r $path;
+    return undef unless -f $fs_path && -r $fs_path;
 
-    my $stat = File::stat::stat($path);
+    unless ($path) {		
+        my $ext = $self->extension;
+		my $dir = $self->app->home->rel_dir($self->directory);
+		
+		# alot of dump hacking here
+        $path = $fs_path;
+        croak
+          "Unable to retrieve access path and language from filesystem path: $path => $dir"
+          unless $path =~ s/^\Q$dir\E(.+)\.?([\w\-]*)$ext$/$1/i;
+		$path =~ tr/\\/\//;
+        $language = lc $2;
+    }
+
+    my $stat = File::stat::stat($fs_path);
     my $retval;
-    if (defined(my $fh = IO::File->new("< $path"))) {
+    if (defined(my $fh = IO::File->new("< $fs_path"))) {
         $fh->binmode($self->binmode_layer);
 
         my $raw = do { local $/; <$fh> };
@@ -160,7 +175,8 @@ sub _load_content {
         }
         $retval = Mojolicious::Plugin::Cms::Content->new(
             id       => $path,
-            language => $_[-1],
+            path     => $path,
+            language => $language,
             modified => $timestamp || $stat->mtime,
             raw      => $raw,
         );
@@ -174,16 +190,18 @@ sub _load_content {
 
 sub restore {
     my $self      = shift;
+    my $path      = shift;
+    my $language  = shift;
     my $timestamp = pop;
 
     croak "Timestamp not defined." unless defined $timestamp;
 
-    my $path = $self->path_to(reverse @_);
-    return undef unless defined $path;
+    my $fs_path = $self->path_to($path, $language);
+    return undef unless defined $fs_path;
 
-    $path .= '.' . $timestamp if $timestamp;
+    $fs_path .= '.' . $timestamp if $timestamp;
 
-    return $self->_load_content($path, $timestamp);
+    return $self->_load_content($fs_path, $path, $language, $timestamp);
 }
 
 sub save {

@@ -3,6 +3,7 @@
 <thead><tr>
 	<th scope="col" id="head_cb" class="check-column"><input type="checkbox" /></th>
 	<th scope="col" id="head_title" class="column-title">Title</th>
+	<th scope="col" id="head_path" class="column-path">Path</th>
 	<th scope="col" id="head_categories" class="column-categories">Categories</th>
 	<th scope="col" id="head_tags" class="column-tags">Tags</th>
 	<th scope="col" id="head_date" class="column-date">Date</th>
@@ -12,6 +13,7 @@
 <tr>
 	<td><input type="checkbox" /></td>
 	<td><%= $content->title %></td>
+	<td><%= $content->path %></td>
 	<td><%= $content->categories_to_string || '(none)' %></td>
 	<td><%= $content->tags_to_string || '(none)' %></td>
 	<td><%= $content->modified %></td>
@@ -20,6 +22,7 @@
 <tfoot><tr>
 	<th scope="col" id="foot_cb" class="column-cb check-column"><input type="checkbox" /></th>
 	<th scope="col" id="foot_title" class="column-title">Title</th>
+	<th scope="col" id="foot_path" class="column-path">Path</th>
 	<th scope="col" id="foot_categories" class="column-categories">Categories</th>
 	<th scope="col" id="foot_tags" class="column-tags">Tags</th>
 	<th scope="col" id="foot_date" class="column-date">Date</th>

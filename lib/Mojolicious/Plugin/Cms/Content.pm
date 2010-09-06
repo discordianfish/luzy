@@ -10,8 +10,8 @@ use Scalar::Util qw/blessed/;
 use List::Util qw/first/;
 
 my %META_ATTRS = (
-    tags       => [],
     categories => [],
+    tags       => [],
     title      => undef,
 );
 my %DATA_ATTRS = (
@@ -29,13 +29,13 @@ __PACKAGE__->attr(id => undef);
 __PACKAGE__->attr(modified => sub {time});
 
 sub _array_to_string {
-	my ($self, $array) = @_;
-	return join ', ', sort @$array;
+    my ($self, $array) = @_;
+    return join ', ', sort @$array;
 }
 
 sub categories_to_string {
-	my $self = shift;
-	return $self->_array_to_string( $self->categories );
+    my $self = shift;
+    return $self->_array_to_string($self->categories);
 }
 
 sub has_category {
@@ -60,8 +60,8 @@ sub save_to {
 }
 
 sub tags_to_string {
-	my $self = shift;
-	return $self->_array_to_string( $self->tags );
+    my $self = shift;
+    return $self->_array_to_string($self->tags);
 }
 
 sub _update_from_group {
