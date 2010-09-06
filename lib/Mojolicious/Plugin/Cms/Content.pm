@@ -28,6 +28,16 @@ foreach my $hash (\%META_ATTRS, \%DATA_ATTRS) {
 __PACKAGE__->attr(id => undef);
 __PACKAGE__->attr(modified => sub {time});
 
+sub _array_to_string {
+	my ($self, $array) = @_;
+	return join ', ', sort @$array;
+}
+
+sub categories_to_string {
+	my $self = shift;
+	return $self->_array_to_string( $self->categories );
+}
+
 sub has_category {
     my ($self, $category) = @_;
     return first { lc($_) eq lc($category) } @{$self->categories};
@@ -47,6 +57,11 @@ sub meta_data {
 sub save_to {
     my ($self, $store) = @_;
     return $store->save($self->path, $self->language, $self);
+}
+
+sub tags_to_string {
+	my $self = shift;
+	return $self->_array_to_string( $self->tags );
 }
 
 sub _update_from_group {
