@@ -153,16 +153,17 @@ sub _load_content {
 
     return undef unless -f $fs_path && -r $fs_path;
 
-    unless ($path) {
-        my $ext = $self->extension;
-        my $dir = $self->app->home->rel_dir($self->directory);
-
-        # alot of dump hacking here
-        $path = $fs_path;
-        croak
-          "Unable to retrieve access path and language from filesystem path: $path => $dir"
-          unless $path =~ s/^\Q$dir\E(.+)\.?([\w\-]*)$ext$/$1/i;
-        $path =~ tr/\\/\//;
+	my $ext = $self->extension;
+    my $dir = $self->app->home->rel_dir($self->directory);
+	my $id = $fs_path; 
+	
+	# alot of dump hacking here
+	$id =~ s/^\Q$dir\E//i;
+	$id =~ tr/\\/\//;
+    unless ($path) {                
+        $path = $id;
+        croak "Unable to retrieve access path and language from filesystem path."
+          unless $path =~ s/\.?([\w\-]*)$ext$/$1/i;        
         $language = lc $2;
     }
 
@@ -177,7 +178,7 @@ sub _load_content {
             $meta = Mojo::JSON->new->decode($1);
         }
         $retval = Mojolicious::Plugin::Cms::Content->new(
-            id       => $path,
+            id       => $id,
             path     => $path,
             language => $language,
             modified => $timestamp || $stat->mtime,

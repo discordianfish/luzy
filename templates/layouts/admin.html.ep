@@ -2,7 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"  dir="ltr" lang="en">
 <head>
 	<title>- Luzy</title>
-	<link rel="stylesheet" id="admin-css"  href="/css/admin.css" type="text/css" media="all" />
+	<link rel="stylesheet" id="admin-css"  href="/css/admin.css" type="text/css" media="all" />	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 </head>
 <body>
 <%== content %>

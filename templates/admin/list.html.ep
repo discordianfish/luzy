@@ -1,7 +1,7 @@
 % layout 'admin';
-<table class="wideluzy fixed" cellspacing="0">
+<table id="cms_list" class="wideluzy fixed" cellspacing="0">
 <thead><tr>
-	<th scope="col" id="head_cb" class="check-column"><input type="checkbox" /></th>
+	<th scope="col" id="head_cb" class="check-column"><input class="master-cb" type="checkbox" /></th>
 	<th scope="col" id="head_title" class="column-title">Title</th>
 	<th scope="col" id="head_path" class="column-path">Path</th>
 	<th scope="col" id="head_categories" class="column-categories">Categories</th>
@@ -10,8 +10,8 @@
 </tr></thead>
 <% my $list = cms_list; %>
 <% foreach my $content ( @$list ) { %>
-<tr>
-	<td class="check-column"><input type="checkbox" /></td>
+<tr class="rollover-column">
+	<td class="check-column"><input class="entry-cb" type="checkbox" /></td>
 	<td><%= $content->title %></td>
 	<td><%= $content->path %></td>
 	<td><%= $content->categories_to_string || '(none)' %></td>
@@ -20,7 +20,7 @@
 </tr>
 <% } %>
 <tfoot><tr>
-	<th scope="col" id="foot_cb" class="column-cb check-column"><input type="checkbox" /></th>
+	<th scope="col" id="foot_cb" class="column-cb check-column"><input class="master-cb" type="checkbox" /></th>
 	<th scope="col" id="foot_title" class="column-title">Title</th>
 	<th scope="col" id="foot_path" class="column-path">Path</th>
 	<th scope="col" id="foot_categories" class="column-categories">Categories</th>
@@ -28,3 +28,41 @@
 	<th scope="col" id="foot_date" class="column-date">Date</th>
 </tr></tfoot>
 </title>
+<script type="text/javascript">
+	$(document).ready(function() {
+		var master_cb = $(".master-cb");
+		var entry_cb  = $(".entry-cb");
+					
+		master_cb.click(function() {
+			var checked = $(this).is(':checked');
+			entry_cb.each(function(ndx) { 
+				var tr = $(this).parent().parent();
+				$(this).attr('checked', checked);
+				if(checked) { tr.addClass('highlightcolor'); }
+				else { tr.removeClass('highlightcolor'); }
+			});
+			master_cb.attr('checked', checked);
+		});
+		entry_cb.click(function() {
+			var tr = $(this).parent().parent();
+			if($(this).is(':checked')) 
+			{ 
+				tr.addClass('highlightcolor');
+				var checked = true;
+				entry_cb.each(function(ndx) { if(!$(this).is(':checked')) { return (checked = false); } });
+				master_cb.attr('checked', checked);
+			}
+			else 
+			{ 
+				tr.removeClass('highlightcolor'); 
+				master_cb.attr('checked', false);
+			}			
+		});
+
+		var rollovers = $(".rollover-column");
+		rollovers.hover(
+			function() { $(this).addClass("hovercolor"); },
+			function() { $(this).removeClass("hovercolor"); }
+		);
+	});
+</script>

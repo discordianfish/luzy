@@ -58,6 +58,15 @@ border-width:1px;
 margin:0 auto;
 }
 
+table.wideluzy .highlightcolor {
+	background-color: #FFF9D3;		
+}
+
+table.wideluzy .hovercolor {
+	background-color: #DBE7FF;	
+	cursor: pointer;
+}
+
 .wideluzy * {
 word-wrap:break-word;
 }
