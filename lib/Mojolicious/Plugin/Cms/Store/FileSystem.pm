@@ -150,16 +150,16 @@ sub _load_content {
 
     return undef unless -f $fs_path && -r $fs_path;
 
-    unless ($path) {		
+    unless ($path) {
         my $ext = $self->extension;
-		my $dir = $self->app->home->rel_dir($self->directory);
-		
-		# alot of dump hacking here
+        my $dir = $self->app->home->rel_dir($self->directory);
+
+        # alot of dump hacking here
         $path = $fs_path;
         croak
           "Unable to retrieve access path and language from filesystem path: $path => $dir"
           unless $path =~ s/^\Q$dir\E(.+)\.?([\w\-]*)$ext$/$1/i;
-		$path =~ tr/\\/\//;
+        $path =~ tr/\\/\//;
         $language = lc $2;
     }
 
