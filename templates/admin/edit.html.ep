@@ -1,1 +1,8 @@
+% my $p = $self->stash('path');
+% my $l = $self->param('language');
+% my $c = cms_load $p, $l;
+
+% $self->stash(TITLE => "Edit $p" . ($l ? " ($l)" : '' ) );
 % layout 'admin';
+
+<%= $c->raw %>

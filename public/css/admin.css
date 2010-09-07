@@ -46,6 +46,10 @@ ol,ul {
 list-style:none;
 }
 
+h1 {
+margin: 1em;
+}
+
 table.fixed {
 table-layout:fixed;
 }

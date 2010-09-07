@@ -39,7 +39,7 @@ sub register {
     $self->app($app);
     $self->conf($conf ||= {});
 
-    my $def_language = lc($conf->{default_language} || 'en');
+    my $def_language = lc($conf->{default_language} || '');
 
     my $content;
     $app->plugins->add_hook(
@@ -88,7 +88,7 @@ sub register {
         );
     }
 
-    # Format heplers
+    # Format helpers
     foreach my $method (['date', '%d.%m.%Y'], ['time', '%T'], ['datetime', '%d.%m.%Y %T']) {
         $app->renderer->add_helper(
             'cms_format_' . $method->[0] => sub {
@@ -98,7 +98,7 @@ sub register {
             }
         );
     }
-		
+
     $app->log->info('Cms loaded');
 
     # No admin functionality needed shortcut
@@ -115,8 +115,10 @@ sub register {
         cb         => undef,                                    # overwrite bridges with callbacks
     );
     $r->route('/')->to(%defaults, action => 'list')->name('cms_admin_list');
-    $r->route('/edit(*path)', path => qr(/.*))->to(%defaults, action => 'edit')
+    $r->route('/edit(*path)', path => qr(/.*))->via('get')->to(%defaults, action => 'edit')
       ->name('cms_admin_edit');
+    $r->route('/edit(*path)', path => qr(/.*))->via('post')->to(%defaults, action => 'save')
+      ->name('cms_admin_save');
 }
 
 1;

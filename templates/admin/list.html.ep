@@ -1,3 +1,4 @@
+% $self->stash(TITLE => 'Overview');
 % layout 'admin';
 % my $url = $self->req->url;
 % $url = $url->path( $url->path->trailing_slash(1) );
@@ -24,9 +25,10 @@
 <tbody>
 % my $list = cms_list;
 % foreach my $content ( @$list ) {
-<tr class="rollover-column" id="<%= $content->id %>">
-	<td class="column-check" class="title-column""><input class="entry-cb" type="checkbox" /></td>
-	<td class="column-title title-td"><a class="title-a" href="<%== $url %>edit<%= $content->id %>"><%= $content->title %></a></td>
+<tr class="rollover-column">
+	<td class="column-check" class="title-column"><input class="entry-cb" type="checkbox" /></td>
+	<td class="column-title title-td"><a class="title-a" 
+		href="<%== $url %>edit<%= $content->path %>?language=<%= $content->language %>"><%= $content->title %></a></td>
 	<td class="column-path"><%= $content->path %></td>
 	<td class="column-language"><%= $content->language || '(none)' %></td>
 	<td class="column-categories"><%= $content->categories_to_string || '(none)' %></td>
@@ -72,13 +74,11 @@
 			function() { $(this).addClass("hovercolor"); },
 			function() { $(this).removeClass("hovercolor"); }
 		);
-		rollovers.click(function() {
-			$(window.location).attr('href', '<%== $url %>edit' + $(this).attr('id'));
-		});
-		
-		# remove the link to look better
+		// remove the link to look better
 		$(".title-a").each(function(ndx) {
-			$(this).parent().html( $(this).html() )
+			var href = $(this).attr('href');						
+			$(this).parent(2).click(function() { $(window.location).attr('href', href); });
+			$(this).parent(1).html( $(this).html() );			
 		});
 		
 	});

@@ -7,11 +7,13 @@ use warnings;
 use Mojo::Path;
 use Mojolicious::Plugin::Cms::Content;
 
+sub edit { }
+
 sub list { }
 
-sub edit {
-    my $self = shift;
-
+sub save {    
+	# my $self = shift;
+	
     # # check required parameters
     # foreach my $p (qw/language path raw/) {
         # unless (defined $self->param($p)) {
