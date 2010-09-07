@@ -24,7 +24,7 @@ __DATA__
 @@ cms.html.ep
 <html><body>
 <h1><%= $cms_content->title %></h1>
-<%= $cms_content->raw %>
+<%= $cms_content %>
 </body></html>
 
 __END__

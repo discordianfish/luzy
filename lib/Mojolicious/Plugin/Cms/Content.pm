@@ -4,15 +4,19 @@ use base 'Mojo::Base';
 use strict;
 use warnings;
 
-use overload '""' => sub { shift->raw };
+use overload '""' => sub { shift->html };
 
-use Scalar::Util qw/blessed/;
+use Carp ();
 use List::Util qw/first/;
+use Mojo::ByteStream 'b';
+use Mojo::Loader ();
+use Scalar::Util qw/blessed/;
 
 my %META_ATTRS = (
     categories => [],
     tags       => [],
     title      => undef,
+    format     => 'none',
 );
 my %DATA_ATTRS = (
     language => undef,
@@ -25,8 +29,27 @@ foreach my $hash (\%META_ATTRS, \%DATA_ATTRS) {
         __PACKAGE__->attr($k => sub {$v});
     }
 }
-__PACKAGE__->attr(id => undef);
-__PACKAGE__->attr(modified => sub {time});
+__PACKAGE__->attr([qw/id _html/]);
+__PACKAGE__->attr(modified  => sub {time});
+__PACKAGE__->attr(formatter => sub { $_[0]->_load_format });
+
+my %FORMATS = ();
+
+sub _load_format {
+    my $self = shift;
+
+    my $fmt = $FORMATS{lc $self->format};
+    return $fmt if defined $fmt;
+
+    my $class = 'Mojolicious::Plugin::Cms::Format';
+    $class .= '::' . b($self->format)->camelize;
+
+    my $e = Mojo::Loader->load($class);
+    Carp::croak sprintf("Could't load format '%s' (class name: %s)", $self->format, $class)
+      if $e;
+
+    return $FORMATS{lc $self->format} = $class->new;
+}
 
 sub _array_to_string {
     my ($self, $array) = @_;
@@ -84,8 +107,21 @@ sub update_from {
     foreach my $group (\%DATA_ATTRS, \%META_ATTRS) {
         $self->_update_from_group($getter, $group);
     }
+    $self->_html(undef);
 
     return $self;
+}
+
+sub html {
+    my $self = shift;
+
+    my $html = $self->_html;
+    return $html if defined $html;
+		
+    $html = $self->formatter->translate($self->raw);
+    $self->_html($html);
+    
+    return $html;
 }
 
 1;

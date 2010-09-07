@@ -10,6 +10,7 @@ use I18N::LangTags::Detect ();
 
 our $VERSION = '0.01';
 
+use Mojo::Loader();
 use Mojolicious::Plugin::Cms::Store::Cache;
 use Mojolicious::Plugin::Cms::Store::FileSystem;
 
@@ -22,7 +23,9 @@ __PACKAGE__->attr(cache => sub { $_[0]->cache_class->new($_[0]->cache_options) }
 __PACKAGE__->attr(
     cache_class => sub {
         my $class = $_[0]->conf->{cache_class} || 'Cache::FileCache';
-        eval "require $class" or die $@;
+        my $e = Mojo::Loader->load($class);
+        Carp::croak sprintf("Could't load cache class '%s'", $class)
+          if $e;
         $class;
     }
 );
