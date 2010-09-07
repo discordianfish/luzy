@@ -6,6 +6,16 @@ margin:0;
 padding:0;
 }
 
+noscript {
+color: red;
+}
+
+noscript p {
+width: 90%;
+margin:0 auto;
+padding: 1em;
+}
+
 html,body {
 height:100%;
 }
@@ -28,12 +38,12 @@ input,select {
 line-height:15px;
 }
 
-ol,ul {
-list-style:none;
-}
-
 p {
 margin:1em 0;
+}
+
+ol,ul {
+list-style:none;
 }
 
 table.fixed {

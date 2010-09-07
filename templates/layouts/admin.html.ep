@@ -9,6 +9,12 @@
 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 </head>
 <body>
+<noscript>
+<p>
+	Your browser does probably support JavaScript, but it is switched off at the moment. If you are keen on seeing
+	the full potential of this fine webside, just turn it on and enjoy.
+</p>
+</noscript>
 <%== content %>
 </body>
 </html>
