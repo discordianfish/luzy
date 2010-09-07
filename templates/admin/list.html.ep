@@ -1,7 +1,10 @@
 % layout 'admin';
+% my $url = $self->req->url;
+% $url = $url->path( $url->path->trailing_slash(1) );
+
 <table id="cms_list" class="wideluzy fixed" cellspacing="0">
 <thead><tr>
-	<th scope="col" id="head_cb" class="check-column"><input class="master-cb" type="checkbox" /></th>
+	<th scope="col" id="head_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
 	<th scope="col" id="head_title" class="column-title">Title</th>
 	<th scope="col" id="head_path" class="column-path">Path</th>
 	<th scope="col" id="head_language" class="column-language">Language</th>
@@ -10,7 +13,7 @@
 	<th scope="col" id="head_date" class="column-date">Date</th>
 </tr></thead>
 <tfoot><tr>
-	<th scope="col" id="foot_cb" class="column-cb check-column"><input class="master-cb" type="checkbox" /></th>
+	<th scope="col" id="foot_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
 	<th scope="col" id="foot_title" class="column-title">Title</th>
 	<th scope="col" id="foot_path" class="column-path">Path</th>
 	<th scope="col" id="foot_language" class="column-language">Language</th>
@@ -19,18 +22,18 @@
 	<th scope="col" id="foot_date" class="column-date">Date</th>
 </tr></tfoot>
 <tbody>
-<% my $list = cms_list; %>
-<% foreach my $content ( @$list ) { %>
-<tr class="rollover-column">
-	<td class="check-column"><input class="entry-cb" type="checkbox" /></td>
-	<td><%= $content->title %></td>
-	<td><%= $content->path %></td>
-	<td><%= $content->language || '(none)' %></td>
-	<td><%= $content->categories_to_string || '(none)' %></td>
-	<td><%= $content->tags_to_string || '(none)' %></td>
-	<td><%= cms_format_datetime $content->modified %></td>
+% my $list = cms_list;
+% foreach my $content ( @$list ) {
+<tr class="rollover-column" id="<%= $content->id %>">
+	<td class="column-check" class="title-column""><input class="entry-cb" type="checkbox" /></td>
+	<td class="column-title title-td"><a class="title-a" href="<%== $url %>edit<%= $content->id %>"><%= $content->title %></a></td>
+	<td class="column-path"><%= $content->path %></td>
+	<td class="column-language"><%= $content->language || '(none)' %></td>
+	<td class="column-categories"><%= $content->categories_to_string || '(none)' %></td>
+	<td class="column-tags"><%= $content->tags_to_string || '(none)' %></td>
+	<td class="column-date"><%= cms_format_datetime $content->modified %></td>
 </tr>
-<% } %>
+% }
 </tbody>
 </table>
 <script type="text/javascript">
@@ -69,5 +72,14 @@
 			function() { $(this).addClass("hovercolor"); },
 			function() { $(this).removeClass("hovercolor"); }
 		);
+		rollovers.click(function() {
+			$(window.location).attr('href', '<%== $url %>edit' + $(this).attr('id'));
+		});
+		
+		# remove the link to look better
+		$(".title-a").each(function(ndx) {
+			$(this).parent().html( $(this).html() )
+		});
+		
 	});
 </script>

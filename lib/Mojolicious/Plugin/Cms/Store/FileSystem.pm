@@ -152,14 +152,14 @@ sub _load_content {
     my $id  = $fs_path;
 
     # alot of dump hacking here
-    $id =~ s{^\Q$dir\E}{}i;
+    $id =~ s{^\Q$dir\E(.*)\Q$ext\E$}{$1}i;
     $id =~ tr{\\}{\/};
     unless ($path) {
         $path = $id;
         croak "Unable to retrieve access path and language from filesystem path."
-          unless $path =~ s{(\.([\w\-]+))?\Q$ext\E$}{}i;
+          unless $path =~ s{(\.([\w\-]+))?$}{}i;
         $language = lc($2 || '');
-    }
+    }	
 
     my $stat = File::stat::stat($fs_path);
     my $retval;

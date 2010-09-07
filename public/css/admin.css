@@ -81,12 +81,12 @@ table.wideluzy .hovercolor {
 word-wrap:break-word;
 }
 
-.wideluzy .check-column {
+.wideluzy .column-check {
 width:2.2em;
 padding:0;
 }
 
-.wideluzy tbody th.check-column {
+.wideluzy tbody th.column-check {
 vertical-align:top;
 padding:7px 0;
 }
@@ -96,7 +96,7 @@ vertical-align:top;
 padding:3px 7px;
 }
 
-.wideluzy td.check-column {
+.wideluzy td.column-check {
 vertical-align:top;
 padding:7px 7px;
 }

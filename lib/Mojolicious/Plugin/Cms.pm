@@ -98,7 +98,7 @@ sub register {
             }
         );
     }
-
+		
     $app->log->info('Cms loaded');
 
     # No admin functionality needed shortcut
