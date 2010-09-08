@@ -18,13 +18,35 @@ plugin cms => {
 
 get '/(*everything)' => (cms => 1) => 'cms';
 
+get '/tag/(*tag)' => [tag => qr(.+)] => 'tag';
+
 app->start;
 
 __DATA__
 @@ cms.html.ep
 <html><body>
 <h1><%= $cms_content->title %></h1>
-<%= $cms_content %>
+<%== $cms_content %>
+<hr />
+Content Tags: 
+% my $tags = $cms_content->tags;
+% for my $tag (@$tags) {
+<a href="/tag/<%= $tag %>"><%= $tag %></a>
+% }
+<hr />
+All Tags: 
+% $tags = cms_all_tags;
+% for my $tag (@$tags) {
+<a href="/tag/<%= $tag %>"><%= $tag %></a>
+% }
 </body></html>
 
+@@ tag.html.ep
+<html><body>
+<h1>Tag <%== $tag %></h1>
+% my $list = cms_list_by_tag $tag;
+% for my $c (@$list)  {
+<a href="<%= $c->path %>"><%= $c->title %></a><br />
+% }
+</body></html>
 __END__

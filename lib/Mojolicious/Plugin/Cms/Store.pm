@@ -9,6 +9,10 @@ use Carp ();
 __PACKAGE__->attr([qw/cms/]);
 __PACKAGE__->attr(app => sub { $_[0]->cms->app });
 
+sub all_categories { Carp::croak 'Method unimplemented by subclass!' }
+
+sub all_tags { Carp::croak 'Method unimplemented by subclass!' }
+
 sub backup { Carp::croak 'Method unimplemented by subclass!' }
 
 sub exists { Carp::croak 'Method unimplemented by subclass!' }

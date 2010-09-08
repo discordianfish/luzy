@@ -56,7 +56,7 @@ sub register {
                 )
             );
 
-            if (defined(my $p = $c->tx->req->url->path)) {
+            if (defined(my $p = $c->tx->req->url->path->clone)) { # clone, dont want to modify original path
 
                 $p = $p->append($self->default)
                   if $p->trailing_slash;
@@ -67,6 +67,7 @@ sub register {
                     next unless $self->_store->exists($p, $l);
 
                     $content = $self->_store->load($p, $l);
+					$c->stash(cms_language => $l);
                     $c->stash(cms_content => $content);
                     last;
                 }
@@ -82,7 +83,7 @@ sub register {
     );
 
     # Helper generation for source methods
-    foreach my $method (qw( exists list load save )) {
+    for my $method (qw/all_tags all_categories exists list list_by_category list_by_tag load save/) {
         $app->renderer->add_helper(
             "cms_$method" => sub {
                 my $c = shift;
@@ -92,7 +93,7 @@ sub register {
     }
 
     # Format helpers
-    foreach my $method (['date', '%d.%m.%Y'], ['time', '%T'], ['datetime', '%d.%m.%Y %T']) {
+    for my $method (['date', '%d.%m.%Y'], ['time', '%T'], ['datetime', '%d.%m.%Y %T']) {
         $app->renderer->add_helper(
             'cms_format_' . $method->[0] => sub {
                 my ($c, $epoch, $format) = @_;

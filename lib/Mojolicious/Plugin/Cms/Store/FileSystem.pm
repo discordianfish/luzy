@@ -24,6 +24,32 @@ __PACKAGE__->attr(directory     => sub { $_[0]->app->home->rel_dir('content') })
 __PACKAGE__->attr(extension     => '.cms');
 __PACKAGE__->attr(make_options  => sub { {owner => 'nobody', group => 'nogroup'} });
 
+sub _unqiue_from_content {
+    my ($self, $what) = (shift, shift);
+
+    my $list = $self->list(@_);
+
+    my %data;
+    for my $c (@$list) {
+        for my $t (@{$c->$what}) {
+            my $key = lc $t;
+            $data{$key} = $t unless exists $data{$key};
+        }
+    }
+
+    return [sort values %data];
+}
+
+sub all_categories {
+    my $self = shift;
+    return $self->_unqiue_from_content(categories => @_);
+}
+
+sub all_tags {
+    my $self = shift;
+    return $self->_unqiue_from_content(tags => @_);
+}
+
 sub backup {
     my ($self, $path, $language, $content, $timestamp) = @_;
 
@@ -62,9 +88,15 @@ sub exists {
 }
 
 sub _list {
-    my ($self, $dir) = @_;
+    my ($self, $dir, $language, $ext_re) = @_;
 
-    my $ext = $self->extension;
+    unless (defined $ext_re) {
+        my $ext = $self->extension;
+        $ext_re =
+          $language
+          ? qr{\.\Q$language\E\Q$ext\E$}i
+          : qr{\Q$ext\E$}i;
+    }
 
     my @retval = ();
     my $handle = IO::Dir->new($dir);
@@ -73,10 +105,10 @@ sub _list {
 
         my $path = File::Spec->catfile($dir, $e);
         if (-d $path) {
-            push @retval, $self->_list($path);
+            push @retval, $self->_list($path, $language, $ext_re);
         }
         elsif (-f $path && -r $path) {
-            next unless $path =~ m/$ext$/i;
+            next unless $path =~ /$ext_re/;
 
             my $c = $self->_load_content($path, undef, undef);
             push @retval, $c if defined $c;
@@ -86,13 +118,14 @@ sub _list {
 }
 
 sub list {
-    my $self = shift;
+    my ($self, $language) = @_;
 
-    my @path = File::Spec->no_upwards(grep {$_} @_);
+    # my @path = File::Spec->no_upwards(grep {$_} @_);
 
     my $path = $self->directory;
-    $path = File::Spec->catdir($path, @path) if @path;
-    my @list = $self->_list($path);
+
+    # $path = File::Spec->catdir($path, @path) if @path;
+    my @list = $self->_list($path, $language);
     my @sorted = sort { $a->id cmp $b->id } @list;
     return \@sorted;
 }
@@ -107,7 +140,7 @@ sub _list_by {
     my $list = $self->list(@_);
 
     my $retval = [];
-    foreach my $c (@$list) {
+    for my $c (@$list) {
         push @$retval, $c if $c->$method($value);
     }
 
@@ -159,7 +192,7 @@ sub _load_content {
         croak "Unable to retrieve access path and language from filesystem path."
           unless $path =~ s{(\.([\w\-]+))?$}{}i;
         $language = lc($2 || '');
-    }	
+    }
 
     my $stat = File::stat::stat($fs_path);
     my $retval;

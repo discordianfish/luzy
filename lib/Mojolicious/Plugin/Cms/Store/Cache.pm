@@ -8,11 +8,12 @@ __PACKAGE__->attr(cache => sub { $_[0]->cms->cache });
 __PACKAGE__->attr(store => sub { $_[0]->cms->store });
 
 sub _retrieve {
-    my $self   = shift;
-    my $method = shift;
-    my $set_it = shift;
+    my $self             = shift;
+    my $method           = shift;
+    my $set_it           = shift;
+    my $add_method_to_id = shift;
 
-    my $id = join '.', grep {$_} @_;
+    my $id = join '.', grep {$_} $add_method_to_id ? ($method, @_) : @_;
     my $rc = $self->cache->get($id);
     unless (defined $rc) {
         $rc = $self->store->$method(@_);
@@ -25,14 +26,24 @@ sub _get {
     my $self   = shift;
     my $method = shift;
 
-    return $self->_retrieve($method, 1, @_);
+    return $self->_retrieve($method, 1, 0, @_);
 }
 
 sub _get_only {
     my $self   = shift;
     my $method = shift;
 
-    return $self->_retrieve($method, 0, @_);
+    return $self->_retrieve($method, 0, 0, @_);
+}
+
+sub all_categories {
+    my $self = shift;
+    return $self->_retrieve(all_categories => 1, 1, @_);
+}
+
+sub all_tags {
+    my $self = shift;
+    return $self->_retrieve(all_tags => 1, 1, @_);
 }
 
 # backup to the store only, don't cache it
