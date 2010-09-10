@@ -6,23 +6,27 @@
 % layout 'admin';
 
 <div id="cms_edit">
-	<form id="cmd_edit_form" method="post" action="save?<%== $self->req->url->query %>">
+	<form id="cmd_edit_form" method="post">
 	<div id="cmd_edit_content">
 		<div id="cmd_edit_content_meta">
 			<div id="cmd_edit_content_title">
-				<label class="prompt" for="title">Enter title</label>
-				<input id="title" type="text" name="title" size="30" tabindex="1" value="" autocomplete="off" />
+				<label class="prompt" id="prompt-for-title" for="title" style="visibility:hidden">Enter title</label>
+				<input id="title" type="text" name="title" size="30" tabindex="1" value="<%= $c->title %>" autocomplete="off" />
 			</div>
 			<div id="cmd_edit_content_permalink">
-				<label class="prompt" for="permalink">Enter permalink</label>
-				<input id="permalink" type="text" name="permalink" size="30" tabindex="1" value="" autocomplete="off" />
+				<label class="prompt" id="prompt-for-permalink" for="permalink" style="visibility:hidden">Enter permalink</label>
+				<input id="permalink" type="text" name="permalink" size="30" tabindex="1" value="<%= $c->path %>" autocomplete="off" />
 			</div>
 			<div id="cmd_edit_content_lannguage">
-				<label class="prompt" for="language">Select language</label>
+				<label class="prompt" id="prompt-for-language" for="language" style="visibility:hidden">Select language</label>
 % my $iso_639 = iso_639;
-				<select id="language" name="language">
+				<select id="language" name="language" size="1">
 % for my $code (@$iso_639) {
-				<option value="<%= $code->{code} %>"><%= $code->{name} %></option>
+				<option 
+% if ($l eq $code->{code}) {
+				selected="selected"
+% }
+				value="<%= $code->{code} %>"><%= $code->{name} %> (<%= $code->{native_name} %>)</option>
 % }
 				</select>
 			</div>
@@ -40,3 +44,18 @@
 	</div>
 	</form>
 </div>
+<script type="text/javascript">	
+	$(document).ready(function() {
+			
+		$('.prompt').each(function(ndx) {	
+			var label = $(this);			
+			var id = label.attr('id').replace('prompt-for-', '');
+
+			var e = $('#' + id);
+			if(e.val().length == 0) { label.css('visibility','visible'); }
+			e.focus(function() { label.css('visibility','hidden'); });
+			e.blur(function() { if($(this).val().length == 0) { label.css('visibility','visible'); } });
+			
+		});
+	});
+</script>

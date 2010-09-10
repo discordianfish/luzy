@@ -90,7 +90,7 @@ Hiri Motu	Hiri Motu	ho
 Hungarian	Magyar	hu
 Interlingua	Interlingua	ia
 Indonesian	Bahasa Indonesia	id
-Interlingue	Originally called Occidental; then Interlingue after WWII	ie
+Interlingue		ie
 Irish	Gaeilge	ga
 Igbo	Asụsụ Igbo	ig
 Inupiaq	Iñupiaq, Iñupiatun	ik
