@@ -31,17 +31,17 @@ foreach my $hash (\%META_ATTRS, \%DATA_ATTRS) {
 }
 __PACKAGE__->attr([qw/id _html/]);
 __PACKAGE__->attr(modified  => sub {time});
-__PACKAGE__->attr(formatter => sub { $_[0]->_load_format });
+__PACKAGE__->attr(converter => sub { $_[0]->_load_converter });
 
 my %FORMATS = ();
 
-sub _load_format {
+sub _load_converter {
     my $self = shift;
 
     my $fmt = $FORMATS{lc $self->format};
     return $fmt if defined $fmt;
 
-    my $class = 'Mojolicious::Plugin::Cms::Format';
+    my $class = 'Mojolicious::Plugin::Cms::Converter';
     $class .= '::' . b($self->format)->camelize;
 
     my $e = Mojo::Loader->load($class);
@@ -118,7 +118,7 @@ sub html {
     my $html = $self->_html;
     return $html if defined $html;
 		
-    $html = $self->formatter->translate($self->raw);
+    $html = $self->converter->to_html($self->raw);
     $self->_html($html);
     
     return $html;
