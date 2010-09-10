@@ -24,7 +24,7 @@ __PACKAGE__->attr(directory     => sub { $_[0]->app->home->rel_dir('content') })
 __PACKAGE__->attr(extension     => '.cms');
 __PACKAGE__->attr(make_options  => sub { {owner => 'nobody', group => 'nogroup'} });
 
-sub _unqiue_from_content {
+sub _unique_from_content {
     my ($self, $what) = (shift, shift);
 
     my $list = $self->list(@_);
@@ -42,12 +42,12 @@ sub _unqiue_from_content {
 
 sub all_categories {
     my $self = shift;
-    return $self->_unqiue_from_content(categories => @_);
+    return $self->_unique_from_content(categories => @_);
 }
 
 sub all_tags {
     my $self = shift;
-    return $self->_unqiue_from_content(tags => @_);
+    return $self->_unique_from_content(tags => @_);
 }
 
 sub backup {
@@ -119,6 +119,12 @@ sub _list {
 
 sub list {
     my ($self, $language) = @_;
+	
+	if($language) {
+		$self->app->log->debug("List content with language $language.");
+	} else {
+		$self->app->log->debug("List content without language.");
+	}
 
     # my @path = File::Spec->no_upwards(grep {$_} @_);
 

@@ -35,7 +35,7 @@ Content Tags:
 % }
 <hr />
 All Tags: 
-% $tags = cms_all_tags;
+% $tags = cms_all_tags $cms_language;
 % for my $tag (@$tags) {
 <a href="/tag/<%= $tag %>"><%= $tag %></a>
 % }
