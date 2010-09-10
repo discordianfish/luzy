@@ -1,6 +1,9 @@
 This file documents the revision history for Mojolicious plugin Mojolicious::Plugin::Cms (Luzy).
 
 0.011	2010-09-10 00:00:00
+		- Updated /admin/edit.html.ep
+		- Added Luzy::Plugin::Iso639 for language codes
+		- Added Luzy namespace with "own" plugin support
 		- fixed some internals and example
 		- Remove support of the "empty" language.
 

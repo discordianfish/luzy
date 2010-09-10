@@ -2,7 +2,41 @@
 % my $l = $self->param('language');
 % my $c = cms_load $p, $l;
 
-% $self->stash(TITLE => "Edit $p" . ($l ? " ($l)" : '' ) );
+% $self->stash(TITLE => 'Edit');
 % layout 'admin';
 
-<%= $c->raw %>
+<div id="cms_edit">
+	<form id="cmd_edit_form" method="post" action="save?<%== $self->req->url->query %>">
+	<div id="cmd_edit_content">
+		<div id="cmd_edit_content_meta">
+			<div id="cmd_edit_content_title">
+				<label class="prompt" for="title">Enter title</label>
+				<input id="title" type="text" name="title" size="30" tabindex="1" value="" autocomplete="off" />
+			</div>
+			<div id="cmd_edit_content_permalink">
+				<label class="prompt" for="permalink">Enter permalink</label>
+				<input id="permalink" type="text" name="permalink" size="30" tabindex="1" value="" autocomplete="off" />
+			</div>
+			<div id="cmd_edit_content_lannguage">
+				<label class="prompt" for="language">Select language</label>
+% my $iso_639 = iso_639;
+				<select id="language" name="language">
+% for my $code (@$iso_639) {
+				<option value="<%= $code->{code} %>"><%= $code->{name} %></option>
+% }
+				</select>
+			</div>
+		</div>
+		<div id="cms_edit_content_raw">
+			<textarea id="raw" rows="10" cols="40" name="raw" tabindex="2"><%= $c->raw %></textarea>
+		</div>
+		<div id="cms_edit_content_tags">
+		</div>
+		<div id="cms_edit_content_buttons">
+			<button id="submit" name="submit" value="submit" type="submit">Save</button>
+			<button id="submit" name="submit" value="preview" type="submit">Preview</button>
+			
+		</div>
+	</div>
+	</form>
+</div>

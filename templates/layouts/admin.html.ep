@@ -16,6 +16,8 @@
 </p>
 </noscript>
 <h1><%== $TITLE %></h1>
+<div id="cms_content">
 <%== content %>
+</div>
 </body>
 </html>

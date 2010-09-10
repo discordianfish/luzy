@@ -7,13 +7,14 @@ BEGIN {
 
 use Mojolicious::Lite;
 
-plugin cms => {
+plugin 'Luzy' => {
     cache_options => {
         namespace          => 'luzy',
         auto_purge_on_set  => 1,
         default_expires_in => 600,
         cache_root         => app->home->rel_dir('content_cache')
-    }
+    },
+	plugins => [qw/iso_639/]
 };
 
 get '/(*everything)' => (cms => 1) => 'cms';
