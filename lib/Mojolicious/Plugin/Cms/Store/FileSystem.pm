@@ -191,7 +191,7 @@ sub _load_content {
         $path = $id;
         croak "Unable to retrieve access path and language from filesystem path."
           unless $path =~ s{(\.([\w\-]+))?$}{}i;
-        $language = lc($2 || '');
+        $language = lc($2 || $self->cms->default_language);
     }
 
     my $stat = File::stat::stat($fs_path);

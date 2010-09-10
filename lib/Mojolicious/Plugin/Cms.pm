@@ -8,7 +8,7 @@ use DateTime               ();
 use I18N::LangTags         ();
 use I18N::LangTags::Detect ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.011';
 
 use Mojo::Loader();
 use Mojolicious::Plugin::Cms::Store::Cache;
@@ -32,6 +32,7 @@ __PACKAGE__->attr(
 __PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
 __PACKAGE__->attr(conf          => sub { {} });
 __PACKAGE__->attr(default       => sub { $_[0]->conf->{default}       || '_default' });
+__PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
 __PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0], %{$_[0]->store_options}) });
 __PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
 __PACKAGE__->attr(_store => sub { $NS_STORE_CAC->new(cms => $_[0]) });
@@ -42,7 +43,7 @@ sub register {
     $self->app($app);
     $self->conf($conf ||= {});
 
-    my $def_language = lc($conf->{default_language} || '');
+    my $def_language = $self->default_language;
 
     my $content;
     $app->plugins->add_hook(
@@ -56,19 +57,20 @@ sub register {
                 )
             );
 
-            if (defined(my $p = $c->tx->req->url->path->clone)) { # clone, dont want to modify original path
+            if (defined(my $p = $c->tx->req->url->path->clone))
+            {    # clone, dont want to modify original path
 
                 $p = $p->append($self->default)
                   if $p->trailing_slash;
 
                 my %seen = ();
-                foreach my $l (map {lc} @languages, $def_language, '') {
+                foreach my $l (map {lc} @languages, $def_language) {
                     next if $seen{$l}++;
                     next unless $self->_store->exists($p, $l);
 
                     $content = $self->_store->load($p, $l);
-					$c->stash(cms_language => $l);
-                    $c->stash(cms_content => $content);
+                    $c->stash(cms_language => $l);
+                    $c->stash(cms_content  => $content);
                     last;
                 }
             }
@@ -83,7 +85,9 @@ sub register {
     );
 
     # Helper generation for source methods
-    for my $method (qw/all_tags all_categories exists list list_by_category list_by_tag load save/) {
+    for
+      my $method (qw/all_tags all_categories exists list list_by_category list_by_tag load save/)
+    {
         $app->renderer->add_helper(
             "cms_$method" => sub {
                 my $c = shift;
