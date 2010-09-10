@@ -7,4 +7,5 @@ This file documents the revision history for Mojolicious plugin Mojolicious::Plu
 0.01	2010-09-08 00:00:00		
 		- Changed luzy.pl to show tags
 		- Added all_tags and all_categories to store interface
-        - Added Changes file
+		- Added Changes file
+	
