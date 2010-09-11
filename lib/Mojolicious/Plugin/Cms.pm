@@ -24,15 +24,14 @@ __PACKAGE__->attr(
     cache_class => sub {
         my $class = $_[0]->conf->{cache_class} || 'Cache::FileCache';
         my $e = Mojo::Loader->load($class);
-        Carp::croak sprintf("Could't load cache class '%s'", $class)
-          if $e;
+        Carp::croak "Could't load cache class '$class'" if $e;
         $class;
     }
 );
 __PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
-__PACKAGE__->attr(conf          => sub { {} });
-__PACKAGE__->attr(default       => sub { $_[0]->conf->{default}       || '_default' });
+__PACKAGE__->attr(conf => sub { {} });
 __PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
+__PACKAGE__->attr(index => sub { $_[0]->conf->{index} || 'index' });
 __PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0], %{$_[0]->store_options}) });
 __PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
 __PACKAGE__->attr(_store => sub { $NS_STORE_CAC->new(cms => $_[0]) });
@@ -57,12 +56,8 @@ sub register {
                 )
             );
 
-            if (defined(my $p = $c->tx->req->url->path->clone))
-            {    # clone, dont want to modify original path
-
-                $p = $p->append($self->default)
-                  if $p->trailing_slash;
-
+            # clone, dont want to modify original path
+            if (defined(my $p = $c->access_path)) {
                 my %seen = ();
                 foreach my $l (map {lc} @languages, $def_language) {
                     next if $seen{$l}++;
@@ -84,16 +79,34 @@ sub register {
         }
     );
 
+    $app->renderer->add_helper(
+        access_path => sub {
+            my $c = shift;
+
+            return my $p = $c->tx->req->url->path;
+
+            # clone, dont want to modify original path
+            $p = $p->clone;
+            $p = $p->append($self->index)
+              if $p->trailing_slash;
+
+            return $p;
+        }
+    );
+
     # Helper generation for source methods
-    for
-      my $method (qw/all_tags all_categories exists list list_by_category list_by_tag load save/)
+    for my $m (
+        qw/all_tags all_categories backup delete exists
+        list list_by_category list_by_tag load restore save/
+      )
     {
-        $app->renderer->add_helper(
-            "cms_$method" => sub {
-                my $c = shift;
-                return $self->_store->$method(@_);
-            }
-        );
+        $app->renderer->add_helper("cms_$m" => sub {
+			my $c = shift;
+			return $self->_store->$m(@_);
+        });
+    }
+    for my $m (qw/default_language/) {
+        $app->renderer->add_helper("cms_$m" => sub { return $self->$m });
     }
 
     # Format helpers
@@ -123,10 +136,12 @@ sub register {
         cb         => undef,                                    # overwrite bridges with callbacks
     );
     $r->route('/')->to(%defaults, action => 'list')->name('cms_admin_list');
-    $r->route('/edit(*path)', path => qr(/.*))->via('get')->to(%defaults, action => 'edit')
+    $r->route('/create')->to(%defaults, action => 'edit')->name('cms_admin_create');
+    $r->route('/edit(*path)', path => qr(/?.+))->to(%defaults, action => 'edit')
       ->name('cms_admin_edit');
-    $r->route('/edit(*path)', path => qr(/.*))->via('post')->to(%defaults, action => 'save')
-      ->name('cms_admin_save');
+
+    #$r->route('/edit(*path)', path => qr(/.*))->via('post')->to(%defaults, action => 'save')
+    #  ->name('cms_admin_save');
 }
 
 1;

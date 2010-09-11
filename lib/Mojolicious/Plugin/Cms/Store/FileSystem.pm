@@ -51,11 +51,15 @@ sub all_tags {
 }
 
 sub backup {
-    my ($self, $path, $language, $content, $timestamp) = @_;
+    my ($self, $content, $timestamp) = @_;
 
-    $timestamp ||= $content->modified || time;
+    Carp::croak "Path not set."     unless $content->path;
+    Carp::croak "Language not set." unless $content->language;
 
-    $path = $self->path_to($path, $language);
+    $timestamp = $content->modified || time
+      unless defined $timestamp;
+
+    my $path = $self->path_to($content->path, $content->language);
     return undef unless defined $path;
 
     $path .= '.' . $timestamp if $timestamp;
@@ -63,9 +67,12 @@ sub backup {
     # unable to save if path exists but is not a file
     return undef if -e $path && !(-f $path);
 
-    $content->id($path) unless defined $content->id;
+    $content->id($path)
+      unless defined $content->id;
 
-    my (undef, $dir, undef) = File::Spec->splitpath($path, 1);
+    my ($vol, $dir, undef) = File::Spec->splitpath($path);
+
+    $dir = File::Spec->catdir($vol, $dir);
     File::Path::make_path($dir, $self->make_options)
       unless -d $dir;
 
@@ -119,19 +126,14 @@ sub _list {
 
 sub list {
     my ($self, $language) = @_;
-	
-	if($language) {
-		$self->app->log->debug("List content with language $language.");
-	} else {
-		$self->app->log->debug("List content without language.");
-	}
 
-    # my @path = File::Spec->no_upwards(grep {$_} @_);
-
-    my $path = $self->directory;
-
-    # $path = File::Spec->catdir($path, @path) if @path;
-    my @list = $self->_list($path, $language);
+    if ($language) {
+        $self->app->log->debug("List content with language $language.");
+    }
+    else {
+        $self->app->log->debug("List content without language.");
+    }
+    my @list = $self->_list($self->directory, $language);
     my @sorted = sort { $a->id cmp $b->id } @list;
     return \@sorted;
 }
@@ -201,7 +203,7 @@ sub _load_content {
     }
 
     my $stat = File::stat::stat($fs_path);
-    my $retval;
+    my $content;
     if (defined(my $fh = IO::File->new("< $fs_path"))) {
         $fh->binmode($self->binmode_layer);
 
@@ -210,19 +212,25 @@ sub _load_content {
         if ($raw =~ s{$META_REGEX}{}) {
             $meta = Mojo::JSON->new->decode($1);
         }
-        $retval = Mojolicious::Plugin::Cms::Content->new(
+        else {
+            $self->app->log->debug('No metadata found.');
+        }
+        $content = Mojolicious::Plugin::Cms::Content->new(
             id       => $id,
             path     => $path,
             language => $language,
             modified => $timestamp || $stat->mtime,
             raw      => $raw,
         );
-        $retval->update_from($meta)
-          if defined $meta;
+
+        while (defined($meta) and (my ($key, $val) = each %$meta)) {
+            $content->$key($val)
+              if $content->can($key);
+        }
 
         $self->app->log->info('Content loaded.');
     }
-    return $retval;
+    return $content;
 }
 
 sub restore {
@@ -243,9 +251,9 @@ sub restore {
 
 sub save {
     my $self    = shift;
-    my $content = pop;
+    my $content = shift;
 
-    return $self->backup(@_, undef, $content);
+    return $self->backup($content, 0);
 }
 
 1;

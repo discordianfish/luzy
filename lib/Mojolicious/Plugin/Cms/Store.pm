@@ -15,6 +15,8 @@ sub all_tags { Carp::croak 'Method unimplemented by subclass!' }
 
 sub backup { Carp::croak 'Method unimplemented by subclass!' }
 
+sub delete { Carp::croak 'Method unimplemented by subclass!' }
+
 sub exists { Carp::croak 'Method unimplemented by subclass!' }
 
 sub list { Carp::croak 'Method unimplemented by subclass!' }

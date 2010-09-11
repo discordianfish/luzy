@@ -3,41 +3,48 @@
 % my $url = $self->req->url;
 % $url = $url->path( $url->path->trailing_slash(1) );
 
-<table id="cms_list" class="wideluzy fixed" cellspacing="0">
-<thead><tr>
-	<th scope="col" id="head_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
-	<th scope="col" id="head_title" class="column-title">Title</th>
-	<th scope="col" id="head_path" class="column-path">Path</th>
-	<th scope="col" id="head_language" class="column-language">Language</th>
-	<th scope="col" id="head_categories" class="column-categories">Categories</th>
-	<th scope="col" id="head_tags" class="column-tags">Tags</th>
-	<th scope="col" id="head_date" class="column-date">Date</th>
-</tr></thead>
-<tfoot><tr>
-	<th scope="col" id="foot_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
-	<th scope="col" id="foot_title" class="column-title">Title</th>
-	<th scope="col" id="foot_path" class="column-path">Path</th>
-	<th scope="col" id="foot_language" class="column-language">Language</th>
-	<th scope="col" id="foot_categories" class="column-categories">Categories</th>
-	<th scope="col" id="foot_tags" class="column-tags">Tags</th>
-	<th scope="col" id="foot_date" class="column-date">Date</th>
-</tr></tfoot>
-<tbody>
+<div id="cms_list">
+	<form id="cmd_list_form" method="post">
+		<table class="wideluzy fixed" cellspacing="0">
+		<thead><tr>
+			<th scope="col" id="head_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
+			<th scope="col" id="head_title" class="column-title">Title</th>
+			<th scope="col" id="head_path" class="column-path">Path</th>
+			<th scope="col" id="head_language" class="column-language">Language</th>
+			<th scope="col" id="head_categories" class="column-categories">Categories</th>
+			<th scope="col" id="head_tags" class="column-tags">Tags</th>
+			<th scope="col" id="head_date" class="column-date">Date</th>
+		</tr></thead>
+		<tfoot><tr>
+			<th scope="col" id="foot_cb" class="column-check"><input class="master-cb" type="checkbox" /></th>
+			<th scope="col" id="foot_title" class="column-title">Title</th>
+			<th scope="col" id="foot_path" class="column-path">Path</th>
+			<th scope="col" id="foot_language" class="column-language">Language</th>
+			<th scope="col" id="foot_categories" class="column-categories">Categories</th>
+			<th scope="col" id="foot_tags" class="column-tags">Tags</th>
+			<th scope="col" id="foot_date" class="column-date">Date</th>
+		</tr></tfoot>
+		<tbody>
 % my $list = cms_list;
 % foreach my $content ( @$list ) {
-<tr class="rollover-column">
-	<td class="column-check" class="title-column"><input class="entry-cb" type="checkbox" /></td>
-	<td class="column-title title-td"><a class="title-a" 
-		href="<%== $url %>edit<%= $content->path %>?language=<%= $content->language %>"><%= $content->title %></a></td>
-	<td class="column-path"><%= $content->path %></td>
-	<td class="column-language"><%= $content->language || '(none)' %></td>
-	<td class="column-categories"><%= $content->categories_to_string || '(none)' %></td>
-	<td class="column-tags"><%= $content->tags_to_string || '(none)' %></td>
-	<td class="column-date"><%= cms_format_datetime $content->modified %></td>
-</tr>
+		<tr class="rollover-column">
+			<td class="column-check" class="title-column"><input class="entry-cb" type="checkbox" /></td>
+			<td class="column-title title-td"><a class="title-a" 
+				href="<%== $url %>edit<%= $content->path %>?language=<%= $content->language %>"><%= $content->title %></a></td>
+			<td class="column-path"><%= $content->path %></td>
+			<td class="column-language"><%= $content->language || '(none)' %></td>
+			<td class="column-categories"><%= $content->categories_to_string || '(none)' %></td>
+			<td class="column-tags"><%= $content->tags_to_string || '(none)' %></td>
+			<td class="column-date"><%= cms_format_datetime $content->modified %></td>
+		</tr>
 % }
-</tbody>
-</table>
+		</tbody>
+		</table>
+	<div class="buttons">
+		<button id="create" name="submit" value="create" type="submit">Create</button>
+	</div>
+	</form>
+</div>
 <script type="text/javascript">
 	$(document).ready(function() {
 		var master_cb = $(".master-cb");

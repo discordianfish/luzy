@@ -6,20 +6,23 @@ use warnings;
 
 sub register {
     my ($self, $app, $conf) = @_;
-
-    unshift @{$app->plugins->namespaces}, 'Luzy::Plugin';
-
+    
+	# prepare plugins
+	unshift @{$app->plugins->namespaces}, 'Luzy::Plugin';
+	
     my $plugins = delete $conf->{plugins} || [];
+		
+		
+	# register the CMS
     $self->SUPER::register($app, $conf);
 
-    foreach my $plugin (@$plugins) {
-        if (ref $plugin) {
-            $app->plugin(@$plugin);
-        }
-        else {
-            $app->plugin($plugin);
-        }
-    }
+	# load plugins	
+	my %seen;
+	foreach (@$plugins, qw/iso_639/) {
+		my $plugin = ref($_) ? $_ : [$_];
+		next if $seen{$plugin->[0]}++;
+		$app->plugin(@$plugin);
+	}
 }
 
 1;

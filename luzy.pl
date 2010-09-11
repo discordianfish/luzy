@@ -14,7 +14,7 @@ plugin 'Luzy' => {
         default_expires_in => 600,
         cache_root         => app->home->rel_dir('content_cache')
     },
-    plugins => [qw/iso_639/]
+    plugins => []
 };
 
 get '/(*everything)' => (cms => 1) => 'cms';

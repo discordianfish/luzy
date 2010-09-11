@@ -12,19 +12,19 @@ use Mojo::ByteStream 'b';
 use Mojo::Loader ();
 use Scalar::Util qw/blessed/;
 
-my %META_ATTRS = (
+my %OPTIONAL = (
     categories => [],
-    tags       => [],
-    title      => undef,
+    tags       => [], 
+	title      => undef,
     format     => 'none',
 );
-my %DATA_ATTRS = (
-    language => undef,
+my %REQUIRED = (
+    language => undef,	
     path     => undef,
     raw      => undef,
 );
 
-foreach my $hash (\%META_ATTRS, \%DATA_ATTRS) {
+foreach my $hash (\%OPTIONAL, \%REQUIRED) {
     while (my ($k, $v) = each %$hash) {
         __PACKAGE__->attr($k => sub {$v});
     }
@@ -71,45 +71,22 @@ sub has_tag {
     return first { lc($_) eq lc($tag) } @{$self->tags};
 }
 
-sub meta_data {
-    my $self = shift;
-
-    return {map { $_ => $self->$_ } grep { $self->$_ } keys %META_ATTRS};
+sub meta_attributes {
+	return [sort keys %OPTIONAL];
 }
 
-sub save_to {
-    my ($self, $store) = @_;
-    return $store->save($self->path, $self->language, $self);
+sub meta_data {
+    my $self = shift;
+    return {map { $_ => $self->$_ } grep { $self->$_ } keys %OPTIONAL};
+}
+
+sub required_attributes {
+	return [sort keys %REQUIRED];
 }
 
 sub tags_to_string {
     my $self = shift;
     return $self->_array_to_string($self->tags);
-}
-
-sub _update_from_group {
-    my ($self, $getter, $group) = @_;
-
-    while (my ($gkey, $gval) = each %$group) {
-        my $value = $getter->($gkey);
-        $self->$gkey($value) if defined $value;
-    }
-}
-
-sub update_from {
-    my ($self, $req) = @_;
-
-    my $getter =
-      blessed($req)
-      ? sub { $req->param($_[0]) }
-      : sub { exists $req->{$_[0]} ? $req->{$_[0]} : undef };
-
-    foreach my $group (\%DATA_ATTRS, \%META_ATTRS) {
-        $self->_update_from_group($getter, $group);
-    }
-    $self->_html(undef);
-
-    return $self;
 }
 
 sub html {

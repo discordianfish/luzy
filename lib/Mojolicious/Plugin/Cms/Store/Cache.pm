@@ -4,6 +4,8 @@ use base 'Mojolicious::Plugin::Cms::Store';
 use strict;
 use warnings;
 
+use Carp ();
+
 __PACKAGE__->attr(cache => sub { $_[0]->cms->cache });
 __PACKAGE__->attr(store => sub { $_[0]->cms->store });
 
@@ -49,6 +51,14 @@ sub all_tags {
 # backup to the store only, don't cache it
 sub backup { shift->store->backup(@_) }
 
+sub delete {
+    my $self = shift;
+    my $id = join '.', grep {$_} @_;
+
+    $self->store->delete(@_);
+    $self->cache->set($id, undef);
+}
+
 sub exists {
     my $self = shift;
     return $self->_get_only(exists => @_);
@@ -79,10 +89,13 @@ sub restore { shift->store->restore(@_) }
 
 sub save {
     my $self    = shift;
-    my $content = pop;
+    my $content = shift;
 
-    my $id = join '.', grep {$_} @_;
-    my $rc = $self->store->save(@_, $content);
+    Carp::croak "Path not set."     unless $content->path;
+    Carp::croak "Language not set." unless $content->language;
+
+    my $id = join '.', grep {$_} $content->path, $content->language;
+    my $rc = $self->store->save($content);
     $self->cache->set($id, $content) if $rc;
     return $rc;
 }
