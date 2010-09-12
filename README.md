@@ -9,6 +9,7 @@ It's a content management system plugin for Mojolicious.
 ## Features
 
 * File-System based
+* Content revisions
 * Cacheing
 * Multi-language content
 * SEO Friendly URLs
