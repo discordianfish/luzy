@@ -21,11 +21,11 @@ sub _parse_csv {
     # Thus it can be accessed as $+
     # See Text::Tags::Parser
     while (
-        $string =~ /\G [\s,]* (?:
+        $string =~ m{\G [\s,]* (?:
                         (") ([^"]*) (?: " | $) |      # double-quoted string
                         (') ([^']*) (?: ' | $) |      # single-quoted string
-                        ([^\s,]+)                   # other 
-		     )/gx
+                        ([^\s,]+)                     # other 
+		     )}gx
       )
     {
         my $tag = $+;
@@ -68,6 +68,9 @@ sub _save {
     my $new = !$required{path};
 
     $required{path} ||= $required{permalink};
+	$required{$_} = $self->access_path( $required{$_} )
+		foreach (qw/path permalink/);
+	
     $self->app->log->debug("Loading content $required{path}, $required{language} ...");
 
     my $content = $self->cms_load($required{path}, $required{language});

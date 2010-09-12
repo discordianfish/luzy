@@ -71,6 +71,11 @@ sub has_tag {
     return first { lc($_) eq lc($tag) } @{$self->tags};
 }
 
+sub path_parts {
+	my $self = shift;
+	return [split /\//, $self->path || ''];
+}
+
 sub meta_attributes {
     return [sort keys %OPTIONAL];
 }

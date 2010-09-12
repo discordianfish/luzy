@@ -82,13 +82,10 @@ sub register {
     $app->renderer->add_helper(
         access_path => sub {
             my $c = shift;
-
-            return my $p = $c->tx->req->url->path;
-
-            # clone, dont want to modify original path
-            $p = $p->clone;
+			my $p = shift || $c->tx->req->url->path->clone;
+						
             $p = $p->append($self->index)
-              if $p->trailing_slash;
+              if $p->trailing_slash && 1 == length $p;
 
             return $p;
         }

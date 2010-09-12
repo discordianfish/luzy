@@ -4,6 +4,8 @@ use base 'Mojolicious::Plugin::Cms::Converter';
 use warnings;
 use strict;
 
+sub name { 'none' }
+
 sub to_html {
     my ($self, $input) = @_;   
     return $input;
@@ -25,6 +27,12 @@ Mojolicious::Plugin::Cms::Converter::None - none managed format
 Mojolicious::Plugin::Cms::Converter::None does not very much. It converts something to html if it is html.
 
 =head1 METHODS
+
+=head2 name
+
+	my $name = $none->name;
+
+Returns the name of the converter: 'none'
 
 =head2 to_html
 

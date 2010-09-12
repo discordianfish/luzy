@@ -4,6 +4,9 @@ use base 'Mojo::Base';
 use warnings;
 use strict;
 use Carp ();
+use Mojo::ByteStream 'b';
+
+sub name { Carp::croak 'Method unimplemented by subclass!' }
 
 sub to_html { Carp::croak 'Method unimplemented by subclass!' }
 
@@ -34,9 +37,15 @@ This converter actually does nothing.
 If you want to be a thing that can convert data, you need to
 implement the following methods:
 
+=head2 name
+
+	my $name = $converter->name;
+
+Returns the name of the converter.
+
 =head2 to_html
 
-    my $html = $type->to_html($input);
+    my $html = $converter->to_html($input);
 
 Output needs to be html.
 

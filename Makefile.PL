@@ -12,10 +12,11 @@ WriteMakefile(
     LICENSE       => 'mit',
     PL_FILES      => {},
     PREREQ_PM     => {
-        'Mojolicious'  => 0.9999,
-        'Cache::Cache' => 1.06,
-        'DateTime'     => 0.61,
+        'Cache::Cache'   => 1.06,
+        'DateTime'       => 0.61,
+        'Mojolicious'    => 0.9999,
+        'Text::Markdown' => 1.000031,
     },
     dist  => {COMPRESS => 'gzip -9f', SUFFIX => 'gz',},
-    clean => {FILES    => 'Mojolicious-Plugin-Cms-*'},
+    clean => {FILES    => 'Mojolicious-Plugin-Cms-* Luzy-*'},
 );
