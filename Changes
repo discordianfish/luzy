@@ -1,6 +1,8 @@
 This file documents the revision history for Mojolicious plugin Mojolicious::Plugin::Cms (Luzy).
 
-0.011	2010-09-12 00:00:00
+0.011	2010-09-13 00:00:00
+		- Fix: Let / route to /index
+		- Make markdown the default converter
 		- Added Markdown converter
 		- Error handling in admin edit action
 		- Better CSV parsing in admin controller (code borrowed from Text::Tags::Parser)

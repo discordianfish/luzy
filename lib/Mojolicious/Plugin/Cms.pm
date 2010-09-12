@@ -30,11 +30,12 @@ __PACKAGE__->attr(
 );
 __PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
 __PACKAGE__->attr(conf => sub { {} });
+__PACKAGE__->attr(default_format => sub { lc($_[0]->conf->{default_format} || 'markdown') });
 __PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
 __PACKAGE__->attr(index => sub { $_[0]->conf->{index} || 'index' });
 __PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0], %{$_[0]->store_options}) });
 __PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
-__PACKAGE__->attr(_store => sub { $NS_STORE_CAC->new(cms => $_[0]) });
+__PACKAGE__->attr(_store => sub { $ENV{MOJO_RELOAD} ? $_[0]->store : $NS_STORE_CAC->new(cms => $_[0]) });
 
 sub register {
     my ($self, $app, $conf) = @_;
@@ -63,7 +64,8 @@ sub register {
                     next if $seen{$l}++;
                     next unless $self->_store->exists($p, $l);
 
-                    $content = $self->_store->load($p, $l);
+                    $content = $self->_store->load($p, $l);										
+					
                     $c->stash(cms_language => $l);
                     $c->stash(cms_content  => $content);
                     last;
@@ -74,7 +76,7 @@ sub register {
 
     $app->routes->add_condition(
         cms => sub {
-            my ($route, $tx, $captures, $arg) = @_;
+            my ($route, $tx, $captures, $arg) = @_;			
             return ($arg && $content) ? $captures : undef;
         }
     );
@@ -104,7 +106,7 @@ sub register {
             }
         );
     }
-    for my $m (qw/default_language/) {
+    for my $m (qw/default_format default_language/) {
         $app->renderer->add_helper("cms_$m" => sub { return $self->$m });
     }
 

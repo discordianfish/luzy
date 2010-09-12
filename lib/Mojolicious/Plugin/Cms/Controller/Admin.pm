@@ -86,6 +86,9 @@ sub _save {
     else {
         $content = Mojolicious::Plugin::Cms::Content->new;
     }
+	$content->format( $self->param('format') || $self->cms_default_format )
+		unless $content->format;
+	
 
     # Let the user fix the errors
     return if $self->stash('errors');

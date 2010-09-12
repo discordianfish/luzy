@@ -17,7 +17,7 @@ plugin 'Luzy' => {
     plugins => []
 };
 
-get '/(*everything)' => (cms => 1) => 'cms';
+get '/(*everything)' => [everything => qr(.*)] => (cms => 1) => 'cms';
 
 get '/tag/(*tag)' => [tag => qr(.+)] => 'tag';
 

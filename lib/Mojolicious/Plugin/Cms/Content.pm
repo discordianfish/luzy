@@ -16,7 +16,7 @@ my %OPTIONAL = (
     categories => [],
     tags       => [],
     title      => undef,
-    format     => 'none',
+    format     => 'markdown',
 );
 my %REQUIRED = (
     language => undef,
@@ -26,29 +26,32 @@ my %REQUIRED = (
 
 foreach my $hash (\%OPTIONAL, \%REQUIRED) {
     while (my ($k, $v) = each %$hash) {
-        __PACKAGE__->attr($k => sub {$v});
+        __PACKAGE__->attr($k => 'CODE' eq ref $v ? $v : sub {$v});
     }
 }
 __PACKAGE__->attr([qw/id _html/]);
 __PACKAGE__->attr(modified  => sub {time});
-__PACKAGE__->attr(converter => sub { $_[0]->_load_converter });
+__PACKAGE__->attr(converter => sub { shift->_load_converter });
 
 my %FORMATS = ();
 
 sub _load_converter {
     my $self = shift;
+	
+	my $format = $self->format;
+	return unless $format;
 
-    my $fmt = $FORMATS{lc $self->format};
+    my $fmt = $FORMATS{lc $format};
     return $fmt if defined $fmt;
-
-    my $class = 'Mojolicious::Plugin::Cms::Converter';
-    $class .= '::' . b($self->format)->camelize;
+		
+    my $class = 'Mojolicious::Plugin::Cms::Converter';		
+    $class .= '::' . b($format)->camelize;
 
     my $e = Mojo::Loader->load($class);
-    Carp::croak sprintf("Could't load format '%s' (class name: %s)", $self->format, $class)
+    Carp::croak sprintf("Could't load format '%s' (class name: %s)", $format, $class)
       if $e;
 
-    return $FORMATS{lc $self->format} = $class->new;
+    return $FORMATS{lc $format} = $class->new;
 }
 
 sub _array_to_string {
@@ -99,8 +102,10 @@ sub html {
 
     my $html = $self->_html;
     return $html if defined $html;
+	
+	return $self->raw unless my $converter = $self->converter;
 
-    $html = $self->converter->to_html($self->raw);
+    $html = $converter->to_html($self->raw);
     $self->_html($html);
 
     return $html;
