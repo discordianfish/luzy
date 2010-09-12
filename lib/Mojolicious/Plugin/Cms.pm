@@ -141,9 +141,8 @@ sub register {
     $r->route('/create')->to(%defaults, action => 'edit')->name('cms_admin_create');
     $r->route('/edit(*path)', path => qr(/?.+))->to(%defaults, action => 'edit')
       ->name('cms_admin_edit');
-
-    #$r->route('/edit(*path)', path => qr(/.*))->via('post')->to(%defaults, action => 'save')
-    #  ->name('cms_admin_save');
+	  
+	$app->log->info('Admin routes configured');    
 }
 
 1;
