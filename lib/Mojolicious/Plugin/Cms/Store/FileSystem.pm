@@ -87,6 +87,18 @@ sub backup {
     return undef;
 }
 
+sub delete {
+	my $self      = shift;
+    my $path      = shift;
+    my $language  = shift;
+    my $timestamp = pop;
+		
+	my $fs_path = $self->path_to($path, $language);
+	$fs_path .= '.' . $timestamp if $timestamp;
+	
+	unlink $fs_path if -f $fs_path;	
+}
+
 sub exists {
     my $self = shift;
 

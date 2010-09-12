@@ -1,3 +1,4 @@
+% my $s = $self->stash;
 % my $p = $self->param('path');
 % my $l = $self->param('language') || cms_default_language;
 % my $c = cms_load $p, $l;
@@ -6,39 +7,52 @@
 % layout 'admin';
 
 <div id="cms_edit">
+	% if ($s->{errors}) {
+	<div class="error"><h2>Unable to process your save request successfully</h2></div>
+	% }
 	<form id="cmd_edit_form" method="post">
-	<div id="cmd_edit_content">
-		<div id="cmd_edit_content_meta">
-			<div id="cmd_edit_content_title">
-				<label class="prompt" id="prompt-for-title" for="title" style="visibility:hidden">Enter title</label>
-				<input id="title" type="text" name="title" size="30" tabindex="1" value="<%= $c ? $c->title : '' %>" autocomplete="off" />
-			</div>
-			<div id="cmd_edit_content_permalink">
-				<label class="prompt" id="prompt-for-permalink" for="permalink" style="visibility:hidden">Enter permalink</label>
-				<input id="permalink" type="text" name="permalink" size="30" tabindex="1" value="<%= $c ? $c->path : '' %>" autocomplete="off" />
-			</div>
-			<div id="cmd_edit_content_lannguage">
-				<label class="prompt" id="prompt-for-language" for="language" style="visibility:hidden">Select language</label>
-% my $iso_639 = iso_639;
-				<select id="language" name="language" size="1">
-% for my $code (@$iso_639) {
-				<option 
-% if ($l && $l eq $code->{code}) {
-				selected="selected"
-% }
-				value="<%= $code->{code} %>"><%= $code->{name} %> (<%= $code->{native_name} || $code->{name} %>)</option>
-% }
-				</select>
-			</div>
+	<div id="cmd_edit_content">		
+		<div id="cmd_edit_content_title">
+			% if ($s->{error_title}) { 
+			<div class="error">Fill in a title.</div> 
+			% }
+			<label class="prompt" id="prompt-for-title" for="title" style="visibility:hidden">Title</label>
+			<input id="title" type="text" name="title" size="30" tabindex="1" value="<%= $c ? $c->title : $self->param('title') %>" autocomplete="off" />				
 		</div>
+		<div id="cmd_edit_content_permalink">
+			% if ($s->{error_permalink}) { 
+			<div class="error">Fill in a permalink.</div> 
+			% }
+			% if ($s->{error_permalink_exists}) { 
+			<div class="error">Permalink already exists. Choose a different one.</div> 
+			% }
+			<label class="prompt" id="prompt-for-permalink" for="permalink" style="visibility:hidden">Permalink (e.g. /foo/bar)</label>
+			<input id="permalink" type="text" name="permalink" size="30" tabindex="2" value="<%= $c ? $c->path : $self->param('permalink') %>" autocomplete="off" />				
+		</div>
+		<div id="cmd_edit_content_lannguage">
+			<label class="prompt" id="prompt-for-language" for="language" style="visibility:hidden">Language</label>
+			% my $iso_639 = iso_639;
+			<select id="language" name="language" size="1" tabindex="3">
+			% for my $code (@$iso_639) {
+			<option 
+			% if ($l && $l eq $code->{code} || $self->param('language') eq $code->{code}) {
+			selected="selected"
+			% }
+			value="<%= $code->{code} %>"><%= $code->{name} %> (<%= $code->{native_name} || $code->{name} %>)</option>
+			% }
+			</select>
+		</div>		
 		<div id="cms_edit_content_raw">
-			<textarea id="raw" rows="10" cols="40" name="raw" tabindex="2"><%= $c ? $c->raw : '' %></textarea>
+			<textarea id="raw" rows="10" cols="40" name="raw" tabindex="4"><%= $c ? $c->raw : $self->param('raw') %></textarea>
 		</div>
 		<div id="cms_edit_content_tags">
+			<label class="prompt" id="prompt-for-tags" for="tags" style="visibility:hidden">Tags (e.g. tag1, "tag2 with spaces", tag3)</label>
+			<input id="tags" type="text" name="tags" size="30" tabindex="5" value="<%= $c ? $c->tags_to_string(1) : $self->param('tags') %>" autocomplete="on" />				
 		</div>
 		<div class="buttons" id="cms_edit_content_buttons">
-			<button id="submit" name="submit" value="submit" type="submit">Save</button>
-			<button id="preview" name="submit" value="preview" type="submit">Preview</button>			
+			<button id="cancel" name="submit" value="cancel" type="submit" tabindex="9">Cancel</button>
+			<button id="submit" name="submit" value="save" type="submit" tabindex="8">Save</button>
+			<button id="preview" name="submit" value="preview" type="submit" tabindex="7">Preview</button>			
 		</div>
 	</div>
 	</form>

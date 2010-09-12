@@ -52,13 +52,13 @@ sub _load_converter {
 }
 
 sub _array_to_string {
-    my ($self, $array) = @_;
-    return join ', ', sort @$array;
+    my ($self, $array, $quotes) = @_;
+    return join ', ', map { m/\s/ && $quotes ? qq{"$_"} : $_ } sort @$array;
 }
 
 sub categories_to_string {
     my $self = shift;
-    return $self->_array_to_string($self->categories);
+    return $self->_array_to_string($self->categories, @_);
 }
 
 sub has_category {
@@ -86,7 +86,7 @@ sub required_attributes {
 
 sub tags_to_string {
     my $self = shift;
-    return $self->_array_to_string($self->tags);
+    return $self->_array_to_string($self->tags, @_);
 }
 
 sub html {

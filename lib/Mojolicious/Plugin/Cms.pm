@@ -100,10 +100,12 @@ sub register {
         list list_by_category list_by_tag load restore save/
       )
     {
-        $app->renderer->add_helper("cms_$m" => sub {
-			my $c = shift;
-			return $self->_store->$m(@_);
-        });
+        $app->renderer->add_helper(
+            "cms_$m" => sub {
+                my $c = shift;
+                return $self->_store->$m(@_);
+            }
+        );
     }
     for my $m (qw/default_language/) {
         $app->renderer->add_helper("cms_$m" => sub { return $self->$m });

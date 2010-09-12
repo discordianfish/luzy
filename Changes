@@ -1,6 +1,8 @@
 This file documents the revision history for Mojolicious plugin Mojolicious::Plugin::Cms (Luzy).
 
-0.011	2010-09-11 00:00:00
+0.011	2010-09-12 00:00:00
+		- Error handling in admin edit action
+		- Better CSV parsing in admin controller (code borrowed from Text::Tags::Parser)
 		- Added save and create actions to admin
 		- Changed Format to Converter
 		- Updated /admin/edit.html.ep
