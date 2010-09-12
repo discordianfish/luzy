@@ -14,12 +14,12 @@ use Scalar::Util qw/blessed/;
 
 my %OPTIONAL = (
     categories => [],
-    tags       => [], 
-	title      => undef,
+    tags       => [],
+    title      => undef,
     format     => 'none',
 );
 my %REQUIRED = (
-    language => undef,	
+    language => undef,
     path     => undef,
     raw      => undef,
 );
@@ -72,7 +72,7 @@ sub has_tag {
 }
 
 sub meta_attributes {
-	return [sort keys %OPTIONAL];
+    return [sort keys %OPTIONAL];
 }
 
 sub meta_data {
@@ -81,7 +81,7 @@ sub meta_data {
 }
 
 sub required_attributes {
-	return [sort keys %REQUIRED];
+    return [sort keys %REQUIRED];
 }
 
 sub tags_to_string {
@@ -94,10 +94,10 @@ sub html {
 
     my $html = $self->_html;
     return $html if defined $html;
-		
+
     $html = $self->converter->to_html($self->raw);
     $self->_html($html);
-    
+
     return $html;
 }
 
