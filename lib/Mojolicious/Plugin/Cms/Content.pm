@@ -29,7 +29,11 @@ foreach my $hash (\%OPTIONAL, \%REQUIRED) {
         __PACKAGE__->attr($k => 'CODE' eq ref $v ? $v : sub {$v});
     }
 }
-__PACKAGE__->attr(id => sub { join '.', $_[0]->path, $_[0]->language } );
+__PACKAGE__->attr(
+    id => sub {
+        join '.', map { $_[0]->$_ } qw/path language/;
+    }
+);
 __PACKAGE__->attr(converter => sub { shift->_load_converter });
 __PACKAGE__->attr(modified  => sub {time});
 __PACKAGE__->attr([qw/_html/]);

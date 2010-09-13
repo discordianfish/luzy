@@ -95,6 +95,9 @@ sub load {
 # restore from the store only, not from the cache
 sub restore { shift->store->restore(@_) }
 
+# revisions from the store only, not from the cache
+sub revisions { shift->store->revisions(@_) }
+
 sub save {
     my $self    = shift;
     my $content = shift;

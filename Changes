@@ -1,6 +1,7 @@
 This file documents the revision history for Mojolicious plugin Mojolicious::Plugin::Cms (Luzy).
 
 0.011	2010-09-13 00:00:00
+		- Added revisions to store interface
 		- Fix: Let / route to /index
 		- Make markdown the default converter
 		- Added Markdown converter

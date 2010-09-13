@@ -93,24 +93,26 @@ sub delete {
     if (ref $thing && $thing->isa('Mojolicious::Plugin::Cms::Content')) {
         $path     = $thing->path;
         $language = $thing->language;
-        return 1 if $self->delete($path, $language, $thing->modified);    # was it a backup?
+
+        if (my $revisions = $self->revisions($thing)) {
+
+            # delete the revisions as well
+            $self->delete($_->path, $_->language, $_->modified) foreach (@$revisions);
+        }
     }
     else {
         $path      = shift;
         $language  = shift;
         $timestamp = pop;
     }
-	
-	Carp::croak "Path not set."     unless $path;
+
+    Carp::croak "Path not set."     unless $path;
     Carp::croak "Language not set." unless $language;
 
     my $fs_path = $self->path_to($path, $language);
     $fs_path .= '.' . $timestamp if $timestamp;
-	
-	$self->app->log->debug("Delete '$fs_path'");
 
-    return 0 unless -e $fs_path;
-
+    $self->app->log->debug("Delete '$fs_path'");
     unlink $fs_path if -f $fs_path;
 
     return !(-e $fs_path);
@@ -235,6 +237,7 @@ sub _load_content {
           unless $path =~ s{(\.([\w\-]+))?$}{}i;
         $language = lc($2 || $self->cms->default_language);
     }
+    $id .= ".$timestamp" if $timestamp;
 
     my $stat = File::stat::stat($fs_path);
     my $content;
@@ -281,6 +284,32 @@ sub restore {
     $fs_path .= '.' . $timestamp if $timestamp;
 
     return $self->_load_content($fs_path, $path, $language, $timestamp);
+}
+
+sub revisions {
+    my $self    = shift;
+    my $content = shift;
+
+    my $fs_path = $self->path_to($content->path, $content->language);
+    return undef unless defined $fs_path;
+
+    my ($vol, $dir, $name) = File::Spec->splitpath($fs_path);
+    $dir = File::Spec->catdir($vol, $dir);
+
+    my @revisions;
+
+    my $handle = IO::Dir->new($dir);
+    while (defined($handle) && defined(my $e = $handle->read)) {
+        next if lc($e) eq lc($name);    # original is not a revision
+        next unless $e =~ m{^$name}i;
+        next unless $e =~ m{\.(\d+)$};    # get timestamp from filename
+
+        $e = File::Spec->catfile($dir, $e);
+
+        push @revisions, $self->_load_content($e, $content->path, $content->language, $1);
+    }
+
+    return \@revisions;
 }
 
 sub save {

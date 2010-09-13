@@ -8,6 +8,7 @@ BEGIN {
 use Mojolicious::Lite;
 use Test::Mojo;
 use Test::More tests => 6;
+use Cache::MemoryCache;
 
 app->log->level('error');
 

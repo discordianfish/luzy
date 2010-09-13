@@ -12,7 +12,7 @@ use Mojolicious::Lite;
 use Mojolicious::Plugin::Cms;
 use Mojolicious::Plugin::Cms::Content;
 
-use Test::More tests => 18;
+use Test::More tests => 26;
 
 app->log->level('fatal');
 
@@ -27,10 +27,10 @@ $cms->register(app,
     }
 );
 
-ok(!$cms->store->exists('/luzy'));
-ok($cms->store->exists('/foo'));    # default language
-ok($cms->store->exists('/foo', 'en'));
-ok(!$cms->store->exists('/foo', 'de'));
+ok(!$cms->store->exists('/luzy'), '/luzy does not exist yet.');
+ok($cms->store->exists('/foo'),   '/foo exists (language: default).');    # default language
+ok($cms->store->exists('/foo', 'en'), '/foo exists (language: en).');
+ok(!$cms->store->exists('/foo', 'de'), '/foo does not exist (language: de).');
 
 my $c1 = Mojolicious::Plugin::Cms::Content->new(
     path     => '/luzy',
@@ -38,24 +38,30 @@ my $c1 = Mojolicious::Plugin::Cms::Content->new(
 );
 
 
-ok($cms->store->save($c1));
-ok($cms->store->exists('/luzy'));
+ok($cms->store->save($c1),       '/luzy saved.');
+ok($cms->store->exists('/luzy'), '/luzy exists.');
 
-ok(my $c2 = $cms->store->load('/luzy'));
-ok(my $c3 = $cms->store->load('/luzy', 'en'));
-is($c1->id, $c2->id);
-is($c1->id, $c3->id);
+ok(my $c2 = $cms->store->load('/luzy'), '/luzy loaded. (language: default)');
+ok(my $c3 = $cms->store->load('/luzy', 'en'), '/luzy loaded. (language: en)');
+is($c1->id, $c2->id, '/luzy is same as /luzy. (language: default)');
+is($c1->id, $c3->id, '/luzy is same as /luzy. (language: en)');
 
-ok($cms->store->backup($c1));
+is(@{$cms->store->revisions($c1)}, 0, '/luzy has 0 revsions');
+ok($cms->store->backup($c1), '/luzy backup ok');
+is(@{$cms->store->revisions($c1)}, 1, '/luzy has 1 revisions now');
+ok($cms->store->delete($c1->path, $c1->language, $c1->modified), '/luzy backup deleted.');
+is(@{$cms->store->revisions($c1)}, 0, '/luzy has 0 revisions');
+ok($cms->store->exists('/luzy', 'en'), '/luzy still exists.');
 
-ok($cms->store->delete($c1));    #only deletes the backup
-ok($cms->store->exists('/luzy', 'en'));
+ok($cms->store->delete($c1), '/luzy deleted');
+ok(!$cms->store->exists('/luzy', 'en'), '/luzy does no longer exists.');
 
-ok($cms->store->delete($c1));
-ok(!$cms->store->exists('/luzy', 'en'));
-
-ok($cms->store->backup($c2));
-ok(!$cms->store->exists('/luzy', 'en'));
-ok($cms->store->delete($c2));
-
+ok($cms->store->backup($c2), '/luzy backup ok.');
+ok(!$cms->store->exists('/luzy', 'en'), '/luzy does not exists on the filesystem.');
+is(@{$cms->store->revisions($c3)}, 1, 'but /luzy has 1 revisions now');
+ok($cms->store->save($c3), '/luzy saved.');
+ok($cms->store->exists('/luzy', 'en'), '/luzy does exists on the filesystem');
+ok($cms->store->delete($c2), 'Delete everything.');
+ok(!$cms->store->exists('/luzy', 'en'), '/luzy does not exists.');
+is(@{$cms->store->revisions($c1)}, 0, '/luzy has 0 revisions');
 
