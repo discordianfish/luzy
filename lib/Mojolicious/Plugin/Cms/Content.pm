@@ -29,22 +29,23 @@ foreach my $hash (\%OPTIONAL, \%REQUIRED) {
         __PACKAGE__->attr($k => 'CODE' eq ref $v ? $v : sub {$v});
     }
 }
-__PACKAGE__->attr([qw/id _html/]);
-__PACKAGE__->attr(modified  => sub {time});
+__PACKAGE__->attr(id => sub { join '.', $_[0]->path, $_[0]->language } );
 __PACKAGE__->attr(converter => sub { shift->_load_converter });
+__PACKAGE__->attr(modified  => sub {time});
+__PACKAGE__->attr([qw/_html/]);
 
 my %FORMATS = ();
 
 sub _load_converter {
     my $self = shift;
-	
-	my $format = $self->format;
-	return unless $format;
+
+    my $format = $self->format;
+    return unless $format;
 
     my $fmt = $FORMATS{lc $format};
     return $fmt if defined $fmt;
-		
-    my $class = 'Mojolicious::Plugin::Cms::Converter';		
+
+    my $class = 'Mojolicious::Plugin::Cms::Converter';
     $class .= '::' . b($format)->camelize;
 
     my $e = Mojo::Loader->load($class);
@@ -75,8 +76,8 @@ sub has_tag {
 }
 
 sub path_parts {
-	my $self = shift;
-	return [split /\//, $self->path || ''];
+    my $self = shift;
+    return [split /\//, $self->path || ''];
 }
 
 sub meta_attributes {
@@ -102,8 +103,8 @@ sub html {
 
     my $html = $self->_html;
     return $html if defined $html;
-	
-	return $self->raw unless my $converter = $self->converter;
+
+    return $self->raw unless my $converter = $self->converter;
 
     $html = $converter->to_html($self->raw);
     $self->_html($html);

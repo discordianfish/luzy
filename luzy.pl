@@ -7,7 +7,7 @@ BEGIN {
 
 use Mojolicious::Lite;
 
-plugin 'Luzy' => {
+plugin Luzy => {
     cache_options => {
         namespace          => 'luzy',
         auto_purge_on_set  => 1,

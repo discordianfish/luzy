@@ -27,7 +27,7 @@ sub name {'markdown'}
 
 sub to_html {
     my ($self, $input) = @_;
-    return $self->_converter->markdown($input);
+    return $self->_converter->markdown($input || '');
 }
 
 1;

@@ -12,7 +12,7 @@ use Test::More tests => 6;
 app->log->level('error');
 
 # Content management configuration
-plugin cms => {
+plugin Luzy => {
     cache_class   => 'Cache::MemoryCache',
     cache_options => {
         namespace          => 'luzy',
@@ -21,7 +21,7 @@ plugin cms => {
     store_options => {directory => app->home->rel_dir('../content')},
 };
 
-get '/(*everything)' => (cms => 1) => 'cms';
+get '/(*everything)' => [everything => qr(.*)] => (cms => 1) => 'cms';
 
 # Go for it!
 my $t = Test::Mojo->new;

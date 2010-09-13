@@ -59,28 +59,25 @@ sub backup {
     $timestamp = $content->modified || time
       unless defined $timestamp;
 
-    my $path = $self->path_to($content->path, $content->language);
-    return undef unless defined $path;
+    my $fs_path = $self->path_to($content->path, $content->language);
+    return undef unless defined $fs_path;
 
-    $path .= '.' . $timestamp if $timestamp;
+    $fs_path .= '.' . $timestamp if $timestamp;
 
     # unable to save if path exists but is not a file
-    return undef if -e $path && !(-f $path);
+    return undef if -e $fs_path && !(-f $fs_path);
 
-    $content->id($path)
-      unless defined $content->id;
-
-    my ($vol, $dir, undef) = File::Spec->splitpath($path);
+    my ($vol, $dir, undef) = File::Spec->splitpath($fs_path);
 
     $dir = File::Spec->catdir($vol, $dir);
     File::Path::make_path($dir, $self->make_options)
       unless -d $dir;
 
-    if (defined(my $fh = IO::File->new("> $path"))) {
+    if (defined(my $fh = IO::File->new("> $fs_path"))) {
         $fh->binmode($self->binmode_layer);
         print $fh sprintf("%s%s%s\n",
             $META_START, Mojo::JSON->new->encode($content->meta_data), $META_END);
-        print $fh $content->raw;
+        print $fh $content->raw || '';
         return $content;
     }
 
@@ -88,22 +85,45 @@ sub backup {
 }
 
 sub delete {
-    my $self      = shift;
-    my $path      = shift;
-    my $language  = shift;
-    my $timestamp = pop;
+    my $self = shift;
+
+    my ($path, $language, $timestamp);
+
+    my $thing = $_[0];
+    if (ref $thing && $thing->isa('Mojolicious::Plugin::Cms::Content')) {
+        $path     = $thing->path;
+        $language = $thing->language;
+        return 1 if $self->delete($path, $language, $thing->modified);    # was it a backup?
+    }
+    else {
+        $path      = shift;
+        $language  = shift;
+        $timestamp = pop;
+    }
+	
+	Carp::croak "Path not set."     unless $path;
+    Carp::croak "Language not set." unless $language;
 
     my $fs_path = $self->path_to($path, $language);
     $fs_path .= '.' . $timestamp if $timestamp;
+	
+	$self->app->log->debug("Delete '$fs_path'");
+
+    return 0 unless -e $fs_path;
 
     unlink $fs_path if -f $fs_path;
+
+    return !(-e $fs_path);
 }
 
 sub exists {
-    my $self = shift;
+    my $self     = shift;
+    my $path     = shift;
+    my $language = shift || $self->cms->default_language;
 
-    my $path = $self->path_to(@_);
-    return defined $path ? -f $path : undef;
+    my $fs_path = $self->path_to($path, $language);
+    $self->app->log->debug("Exists '$fs_path'?");
+    return $fs_path ? -f $fs_path : undef;
 }
 
 sub _list {
@@ -178,9 +198,11 @@ sub list_by_category {
 }
 
 sub load {
-    my $self = shift;
+    my $self     = shift;
+    my $path     = shift;
+    my $language = shift || $self->cms->default_language;
 
-    return $self->restore(@_, 0);
+    return $self->restore($path, $language, @_, 0);
 }
 
 sub path_to {

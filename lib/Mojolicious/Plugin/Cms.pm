@@ -20,14 +20,7 @@ my $NS_STORE_CAC = "$NS_STORE\::Cache";
 
 __PACKAGE__->attr(app => undef);
 __PACKAGE__->attr(cache => sub { $_[0]->cache_class->new($_[0]->cache_options) });
-__PACKAGE__->attr(
-    cache_class => sub {
-        my $class = $_[0]->conf->{cache_class} || 'Cache::FileCache';
-        my $e = Mojo::Loader->load($class);
-        Carp::croak "Could't load cache class '$class'" if $e;
-        $class;
-    }
-);
+__PACKAGE__->attr(cache_class => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' } );
 __PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
 __PACKAGE__->attr(conf => sub { {} });
 __PACKAGE__->attr(default_format => sub { lc($_[0]->conf->{default_format} || 'markdown') });
@@ -35,7 +28,7 @@ __PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} |
 __PACKAGE__->attr(index => sub { $_[0]->conf->{index} || 'index' });
 __PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0], %{$_[0]->store_options}) });
 __PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
-__PACKAGE__->attr(_store => sub { $ENV{MOJO_RELOAD} ? $_[0]->store : $NS_STORE_CAC->new(cms => $_[0]) });
+__PACKAGE__->attr(_store => sub { $ENV{MOJO_RELOAD} ? $_[0]->store :  $NS_STORE_CAC->new(cms => $_[0]) });
 
 sub register {
     my ($self, $app, $conf) = @_;

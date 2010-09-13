@@ -52,11 +52,19 @@ sub all_tags {
 sub backup { shift->store->backup(@_) }
 
 sub delete {
-    my $self = shift;
-    my $id = join '.', grep {$_} @_;
+    my $self  = shift;
+    my $thing = $_[0];
 
-    $self->store->delete(@_);
+    my $id;
+    if (ref $thing && $thing->isa('Mojolicious::Plugin::Cms::Content')) {
+        $id = join '.', grep {$_} $thing->path, $thing->language;
+    }
+    else {
+        $id = join '.', grep {$_} @_;
+    }
+
     $self->cache->set($id, undef);
+    return $self->store->delete(@_);
 }
 
 sub exists {
