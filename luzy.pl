@@ -12,14 +12,15 @@ plugin Luzy => {
         namespace          => 'luzy',
         auto_purge_on_set  => 1,
         default_expires_in => 600,
-        cache_root         => app->home->rel_dir('content_cache')
+        cache_root         => app->home->rel_dir('content_cache'),
     },
-    plugins => []
+    no_auto_route => 1,
+    plugins       => []
 };
 
-get '/(*everything)' => [everything => qr(.*)] => (cms => 1) => 'cms';
+get '/(*everything)' => [ everything => qr(.*) ] => ( cms => 1 ) => 'cms';
 
-get '/tag/(*tag)' => [tag => qr(.+)] => 'tag';
+get '/tag/(*tag)' => [ tag => qr(.+) ] => 'tag';
 
 app->start;
 

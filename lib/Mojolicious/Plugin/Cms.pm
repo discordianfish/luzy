@@ -22,6 +22,7 @@ __PACKAGE__->attr(app => undef);
 __PACKAGE__->attr(cache => sub { $_[0]->cache_class->new($_[0]->cache_options) });
 __PACKAGE__->attr(cache_class => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' } );
 __PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
+__PACKAGE__->attr(condition_name => sub { $_[0]->conf->{condition_name} || 'cms' });
 __PACKAGE__->attr(conf => sub { {} });
 __PACKAGE__->attr(default_format => sub { lc($_[0]->conf->{default_format} || 'markdown') });
 __PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
@@ -68,7 +69,7 @@ sub register {
     );
 
     $app->routes->add_condition(
-        cms => sub {
+        $self->condition_name => sub {
             my ($route, $tx, $captures, $arg) = @_;			
             return ($arg && $content) ? $captures : undef;
         }
