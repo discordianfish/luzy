@@ -79,6 +79,20 @@ sub has_tag {
     return first { lc($_) eq lc($tag) } @{$self->tags};
 }
 
+sub html {
+    my $self = shift;
+
+    my $html = $self->_html;
+    return $html if defined $html;
+
+    return $self->raw unless my $converter = $self->converter;
+
+    $html = $converter->to_html($self->raw);
+    $self->_html($html);
+
+    return $html;
+}
+
 sub path_parts {
     my $self = shift;
     return [split /\//, $self->path || ''];
@@ -100,20 +114,6 @@ sub required_attributes {
 sub tags_to_string {
     my $self = shift;
     return $self->_array_to_string($self->tags, @_);
-}
-
-sub html {
-    my $self = shift;
-
-    my $html = $self->_html;
-    return $html if defined $html;
-
-    return $self->raw unless my $converter = $self->converter;
-
-    $html = $converter->to_html($self->raw);
-    $self->_html($html);
-
-    return $html;
 }
 
 1;

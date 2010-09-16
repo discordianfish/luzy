@@ -6,19 +6,19 @@ use warnings;
 
 use Text::MultiMarkdown ();
 
-__PACKAGE__->attr( [qw/base_url document_format use_wikilinks/] );
-__PACKAGE__->attr( bibliography_title      => '' );
-__PACKAGE__->attr( disable_bibliography    => 0 );
-__PACKAGE__->attr( disable_footnotes       => 0 );
-__PACKAGE__->attr( disable_tables          => 0 );
-__PACKAGE__->attr( empty_element_suffix    => ' />' );
-__PACKAGE__->attr( heading_ids             => 1 );
-__PACKAGE__->attr( img_ids                 => 1 );
-__PACKAGE__->attr( tab_width               => 4 );
-__PACKAGE__->attr( markdown_in_html_blocks => 0 );
-__PACKAGE__->attr( strip_metadata          => 0 );
-__PACKAGE__->attr( trust_list_start_value  => 0 );
-__PACKAGE__->attr( use_metadata            => 1 );
+__PACKAGE__->attr([qw/base_url document_format use_wikilinks/]);
+__PACKAGE__->attr(bibliography_title      => '');
+__PACKAGE__->attr(disable_bibliography    => 0);
+__PACKAGE__->attr(disable_footnotes       => 0);
+__PACKAGE__->attr(disable_tables          => 0);
+__PACKAGE__->attr(empty_element_suffix    => ' />');
+__PACKAGE__->attr(heading_ids             => 1);
+__PACKAGE__->attr(img_ids                 => 1);
+__PACKAGE__->attr(tab_width               => 4);
+__PACKAGE__->attr(markdown_in_html_blocks => 0);
+__PACKAGE__->attr(strip_metadata          => 0);
+__PACKAGE__->attr(trust_list_start_value  => 0);
+__PACKAGE__->attr(use_metadata            => 1);
 
 __PACKAGE__->attr(
     _converter => sub {
@@ -43,11 +43,11 @@ __PACKAGE__->attr(
     }
 );
 
-sub name { 'multi_markdown' }
+sub name {'multi_markdown'}
 
 sub to_html {
-    my ( $self, $input ) = @_;
-    return $self->_converter->markdown( $input || '' );
+    my ($self, $input) = @_;
+    return $self->_converter->markdown($input || '');
 }
 
 1;

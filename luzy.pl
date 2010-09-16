@@ -28,7 +28,12 @@ __DATA__
 @@ cms.html.ep
 <html><body>
 <h1><%= $cms_content->title %></h1>
+<h2>Resolved Content</h2>
+<%== resolve $cms_content %>
+<h2>Content</h2>
 <%== $cms_content %>
+<h2>Raw</h2>
+<%== $cms_content->raw %>
 <hr />
 Content Tags: 
 % my $tags = $cms_content->tags;

@@ -10,26 +10,40 @@ use I18N::LangTags::Detect ();
 
 our $VERSION = '0.011';
 
-use Mojo::Loader();
+use Mojo::DOM;
+use Mojo::Loader;
+use Mojolicious::Plugin::Cms::Resolver::DOM;
 use Mojolicious::Plugin::Cms::Store::Cache;
 use Mojolicious::Plugin::Cms::Store::FileSystem;
 
-my $NS_STORE     = 'Mojolicious::Plugin::Cms::Store';
-my $NS_STORE_DEF = "$NS_STORE\::FileSystem";
-my $NS_STORE_CAC = "$NS_STORE\::Cache";
-
-__PACKAGE__->attr(app => undef);
-__PACKAGE__->attr(cache => sub { $_[0]->cache_class->new($_[0]->cache_options) });
-__PACKAGE__->attr(cache_class => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' } );
-__PACKAGE__->attr(cache_options => sub { $_[0]->conf->{cache_options} || {} });
+__PACKAGE__->attr(app            => undef);
+__PACKAGE__->attr(cache          => sub { $_[0]->cache_class->new($_[0]->cache_options) });
+__PACKAGE__->attr(cache_class    => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' });
+__PACKAGE__->attr(cache_options  => sub { $_[0]->conf->{cache_options} || {} });
 __PACKAGE__->attr(condition_name => sub { $_[0]->conf->{condition_name} || 'cms' });
-__PACKAGE__->attr(conf => sub { {} });
-__PACKAGE__->attr(default_format => sub { lc($_[0]->conf->{default_format} || 'markdown') });
+__PACKAGE__->attr(conf             => sub { {} });
+__PACKAGE__->attr(default_format   => sub { lc($_[0]->conf->{default_format} || 'markdown') });
 __PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
-__PACKAGE__->attr(index => sub { $_[0]->conf->{index} || 'index' });
-__PACKAGE__->attr(store => sub { $NS_STORE_DEF->new(cms => $_[0], %{$_[0]->store_options}) });
+__PACKAGE__->attr(index            => sub { $_[0]->conf->{index} || 'index' });
+__PACKAGE__->attr(
+    resolver => sub {
+        $_[0]->conf->{resolver}
+          || Mojolicious::Plugin::Cms::Resolver::DOM->new(cms => $_[0]);
+    }
+);
+__PACKAGE__->attr(
+    store => sub {
+        Mojolicious::Plugin::Cms::Store::FileSystem->new(cms => $_[0], %{$_[0]->store_options});
+    }
+);
 __PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
-__PACKAGE__->attr(_store => sub { $ENV{MOJO_RELOAD} ? $_[0]->store :  $NS_STORE_CAC->new(cms => $_[0]) });
+__PACKAGE__->attr(
+    _store => sub {
+        $ENV{MOJO_RELOAD}
+          ? $_[0]->store
+          : Mojolicious::Plugin::Cms::Store::Cache->new(cms => $_[0]);
+    }
+);
 
 sub register {
     my ($self, $app, $conf) = @_;
@@ -58,8 +72,8 @@ sub register {
                     next if $seen{$l}++;
                     next unless $self->_store->exists($p, $l);
 
-                    $content = $self->_store->load($p, $l);										
-					
+                    $content = $self->_store->load($p, $l);
+
                     $c->stash(cms_language => $l);
                     $c->stash(cms_content  => $content);
                     last;
@@ -68,9 +82,12 @@ sub register {
         }
     );
 
+    # Predefined resolver definitioons
+    $self->resolver->define(time => sub {time});
+
     $app->routes->add_condition(
         $self->condition_name => sub {
-            my ($route, $tx, $captures, $arg) = @_;			
+            my ($route, $tx, $captures, $arg) = @_;
             return ($arg && $content) ? $captures : undef;
         }
     );
@@ -78,12 +95,18 @@ sub register {
     $app->renderer->add_helper(
         access_path => sub {
             my $c = shift;
-			my $p = shift || $c->tx->req->url->path->clone;
-						
+            my $p = shift || $c->tx->req->url->path->clone;
+
             $p = $p->append($self->index)
               if $p->trailing_slash && 1 == length $p;
 
             return $p;
+        }
+    );
+    $app->renderer->add_helper(
+        resolve => sub {
+            my $c = shift;
+            return $self->resolver->resolve(@_);
         }
     );
 

@@ -39,7 +39,7 @@ Mojolicious::Plugin::Cms::Converter::Markdown - markdown managed format
 
 =head1 SYNOPSIS
 
-    my $html = $none->to_html($input);
+    my $html = $markdown->to_html($input);
 
 =head1 DESCRIPTION
 
@@ -49,7 +49,7 @@ Mojolicious::Plugin::Cms::Converter::Markdown converts input in markdown to html
 
 =head2 name
 
-	my $name = $none->name;
+	my $name = $markdown->name;
 
 Returns the name of the converter: 'markdown'
 
@@ -63,4 +63,5 @@ The to_html function.
 
 L<Mojolicious::Plugin::Cms>,
 L<Mojolicious::Plugin::Cms::Converter>
+L<Text::Markdown>
 
