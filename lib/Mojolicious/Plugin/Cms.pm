@@ -85,9 +85,11 @@ sub register {
     # Predefined resolver definitioons
     $self->resolver->bind(time => sub {time});
 
+	my $condition_name = $self->condition_name;
     $app->routes->add_condition(
-        $self->condition_name => sub {
+         $condition_name => sub {
             my ($route, $tx, $captures, $arg) = @_;
+			$self->app->log->debug("Condition: $condition_name, $route, $tx, $captures, $arg\n");
             return ($arg && $content) ? $captures : undef;
         }
     );

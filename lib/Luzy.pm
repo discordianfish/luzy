@@ -31,11 +31,8 @@ sub register {
     my $route_match = $self->auto_route->{match} || qr(.*);
 
     my $routes = $app->routes;
-    $routes->route(
-        '/(*everything)',
-        everything => $route_match,
-        name       => $route_name
-    )->over( $self->condition_name => 1 );
+    $routes->route( '/(*everything)', { everything => $route_match }, )
+      ->over( $self->condition_name => 1 )->to( namespace => '' )->name($route_name);
 
     return $rc;
 }
