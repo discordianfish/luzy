@@ -83,7 +83,7 @@ sub register {
     );
 
     # Predefined resolver definitioons
-    $self->resolver->define(time => sub {time});
+    $self->resolver->bind(time => sub {time});
 
     $app->routes->add_condition(
         $self->condition_name => sub {
