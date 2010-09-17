@@ -3,7 +3,7 @@ use base 'Luzy::Plugin';
 
 use Encode;
 
-sub register {
+sub initialize {
 	my ($self, $app, $conf) = @_;
 	
 	my @codes = ();

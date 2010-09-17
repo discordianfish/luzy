@@ -74,7 +74,6 @@ sub register {
             # eperimental: return when static content is to be served            
 			my $static_file = File::Spec->catfile( $self->app->static->root, $c->tx->req->url->path );
 			my $is_static = (-e $static_file && -f $static_file) || 0;
-			$self->app->log->debug("Static file: $static_file => $is_static");
 			return if $is_static;
 			
 			# Empty values
@@ -125,13 +124,13 @@ sub register {
     );
     $app->helper(
         resolve => sub {
-            my $c = shift;
+            shift if ref $_[0];
             return $self->resolver->resolve(@_);
         }
     );
 	$app->helper(
         bind => sub {     
-			my $c = shift;		
+			shift if ref $_[0];
             return $self->resolver->bind(@_);
         }
     );
