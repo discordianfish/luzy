@@ -23,7 +23,8 @@ sub register {
     my %seen;
     foreach (@$plugins, qw/iso_639/) {
         my $plugin = ref($_) ? $_ : [$_];
-		$app->plugin($plugin->[0], { luzy => $self, plugin_conf => $plugin->[1] });
+        next if $seen{$plugin->[0]}++;
+        $app->plugin($plugin->[0], {luzy => $self, plugin_conf => $plugin->[1]});
     }
 
     return $rc if $conf->{no_auto_route};
