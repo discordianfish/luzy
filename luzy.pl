@@ -14,11 +14,11 @@ plugin Luzy => {
         default_expires_in => 600,
         cache_root         => app->home->rel_dir('content_cache'),
     },
-  #  no_auto_route => 1,
+    no_auto_route => 1,
     plugins       => []
 };
 
-# get '/(*everything)' => [ everything => qr(.*) ] => ( cms => 1 ) => 'cms';
+get '/(*everything)' => [ everything => qr(.*) ] => ( cms => 1 ) => 'cms';
 
 get '/tag/(*tag)' => [ tag => qr(.+) ] => 'tag';
 
