@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use DateTime               ();
+use Cache::FileCache       ();
 use I18N::LangTags         ();
 use I18N::LangTags::Detect ();
 
@@ -68,12 +69,17 @@ sub register {
     $app->plugins->add_hook(
         before_dispatch => sub {
             my ( $s, $c ) = @_;
-            undef $content;
+            undef $content;			
 
-            # eperimental: return when static content is to be served
-            my $static_root = $self->app->static->root;
-            return -f File::Spec->catfile( $static_root,
-                $c->tx->req->url->path );
+            # eperimental: return when static content is to be served            
+			my $static_file = File::Spec->catfile( $self->app->static->root, $c->tx->req->url->path );
+			my $is_static = (-e $static_file && -f $static_file) || 0;
+			$self->app->log->debug("Static file: $static_file => $is_static");
+			return if $is_static;
+			
+			# Empty values
+			$c->stash( cms_language => undef );
+            $c->stash( cms_content  => undef );
 
             my @languages = I18N::LangTags::implicate_supers(
                 I18N::LangTags::Detect->http_accept_langs(
@@ -97,10 +103,7 @@ sub register {
             }
         }
     );
-
-    # Predefined resolver bindings
-    $self->resolver->bind( time => sub { time } );
-
+    
     my $condition_name = $self->condition_name;
     $app->routes->add_condition(
         $condition_name => sub {
@@ -109,7 +112,7 @@ sub register {
         }
     );
 
-    $app->renderer->add_helper(
+    $app->helper(
         access_path => sub {
             my $c = shift;
             my $p = shift || $c->tx->req->url->path->clone;
@@ -120,10 +123,16 @@ sub register {
             return $p;
         }
     );
-    $app->renderer->add_helper(
+    $app->helper(
         resolve => sub {
             my $c = shift;
             return $self->resolver->resolve(@_);
+        }
+    );
+	$app->helper(
+        bind => sub {     
+			my $c = shift;		
+            return $self->resolver->bind(@_);
         }
     );
 
@@ -133,7 +142,7 @@ sub register {
         list list_by_category list_by_tag load restore save/
       )
     {
-        $app->renderer->add_helper(
+        $app->helper(
             "cms_$m" => sub {
                 my $c = shift;
                 return $self->_store->$m(@_);
@@ -141,7 +150,7 @@ sub register {
         );
     }
     for my $m (qw/default_format default_language/) {
-        $app->renderer->add_helper( "cms_$m" => sub { return $self->$m } );
+        $app->helper( "cms_$m" => sub { return $self->$m } );
     }
 
     # Format helpers
@@ -151,7 +160,7 @@ sub register {
         [ 'datetime', '%d.%m.%Y %T' ]
       )
     {
-        $app->renderer->add_helper(
+        $app->helper(
             'cms_format_' . $method->[0] => sub {
                 my ( $c, $epoch, $format ) = @_;
                 $format ||= $method->[1];
@@ -160,6 +169,10 @@ sub register {
             }
         );
     }
+	
+	# Predefined resolver bindings
+    $self->resolver->bind( time => sub { time } );
+
 
     $app->log->info('Cms loaded');
 

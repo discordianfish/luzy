@@ -23,11 +23,11 @@ sub resolve {
     croak 'Parser not defined.' unless defined $parser;
 
     $parser->parse($content);
-    while ( my ( $pattern, $callback ) = each %{ $self->bindings } ) {
+    while ( my ( $pattern, $callback ) = each %{ $self->bindings } ) {		
         $parser->find($pattern)->each(
             sub {
                 my $element = shift;
-                $element->replace( $callback->($element) );
+                $element->replace( $callback->($element) || '' );
             }
         );
     }

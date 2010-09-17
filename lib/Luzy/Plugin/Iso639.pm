@@ -20,7 +20,7 @@ sub register {
 		};
 	}
 	
-	$app->renderer->add_helper( iso_639 => sub { \@codes } );
+	$app->helper( iso_639 => sub { \@codes } );
 }
 
 
