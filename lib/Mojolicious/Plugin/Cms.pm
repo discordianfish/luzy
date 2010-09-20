@@ -11,7 +11,6 @@ use I18N::LangTags::Detect ();
 
 our $VERSION = '0.011';
 
-use Devel::Cycle;
 use Mojo::DOM;
 use Mojo::Loader;
 use Mojolicious::Plugin::Cms::Resolver::DOM;
@@ -68,9 +67,7 @@ sub register {
     my $content;
     $app->plugins->add_hook(
         before_dispatch => sub {
-            my ($s, $c) = @_;
-			
-			find_cycle($c);
+            my ($s, $c) = @_;						
 			
             undef $content;
 
