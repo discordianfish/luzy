@@ -5,46 +5,85 @@ use strict;
 use warnings;
 
 use Carp;
-use Encode;
-use File::Spec;
+use File::Spec ();
 
-__PACKAGE__->attr([qw/cms parser/]);
+__PACKAGE__->attr([qw/cms parser no_default_binding/]);
 __PACKAGE__->attr(app      => sub { $_[0]->cms->app });
 __PACKAGE__->attr(bindings => sub { {} });
-__PACKAGE__->attr(template_subdir => 'resolver');
+__PACKAGE__->attr(template_subdir => 'partials');
 
 sub bind {
-    my ($self, $pattern, $cb, @args) = @_;
-    my %args = ref $args[0] ? %{$args[0]} : @args;
+    my $self    = shift;
+    my $pattern = shift;
+
+    my $cb;
+    $cb = shift if 'CODE' eq ref $_[0];
+    my %args = ref $_[0] ? %{$_[0]} : @_;
+
     $self->bindings->{lc $pattern} = {%args, cb => $cb,};
 }
 
+sub _resolve_entity {
+    my ($self, $bind, $controller, $entity) = @_;
+
+    my $runat = delete $entity->attrs->{runat} || '';
+    my $template = delete $entity->attrs->{template} || $bind->{template} || undef;
+
+    $template = File::Spec->catfile($self->template_subdir, $template)
+      if $template && $self->template_subdir;
+
+    my $cb = $bind->{cb};
+
+    my $output;
+    $output = $cb->($entity, $controller) if 'CODE' eq ref $cb;
+    if ($template) {
+        $output = $controller->render_partial(template => $template)->to_string;
+    }
+    elsif (lc $runat eq 'server') {
+        my $xml = $entity->to_xml;
+
+        # ugly
+        $xml =~ s{(<\%=.*)\%\s+/>}{$1%>}g;
+        $output = $controller->render_partial(inline => $xml)->to_string;
+    }
+    $entity->replace($output || '');
+}
+
 sub resolve {
-    my ($self, $c, $content) = @_;
+    my ($self, $controller, $content) = @_;
 
     my $parser = $self->parser;
     croak 'Parser not defined.' unless defined $parser;
 
-    my $path = $self->template_subdir || '';
-
     $parser->parse($content);
     while (my ($pattern, $bind) = each %{$self->bindings}) {
-        $parser->find($pattern)->each(
-            sub {
-                my $element = shift;
-
-                my $template;
-                $template = File::Spec->catfile($path, $bind->{name})
-                  if $bind->{name};
-                my $output = $bind->{cb}->($element, $c);
-                $output = $c->render_partial(template => $template)->to_string
-                  if $template;
-                $element->replace($output || '');
-            }
-        );
+        $parser->find($pattern)->each(sub { $self->_resolve_entity($bind, $controller, @_) });
     }
+    $parser->find('*[runat="server"]')->each(sub { $self->_resolve_entity({}, $controller, @_) })
+      unless $self->no_default_binding;
 
-    return $parser;
+    return $parser->to_xml;
 }
 
+
 1;
+__END__
+
+=head1 NAME
+
+Mojolicious::Plugin::Cms::Resolver - Resolves server bindings inside XML
+
+=head1 SYNOPSIS
+
+    use Mojolicious::Plugin::Cms::Resolver;
+
+	my $controller; # some Mojolicious::Controller 	
+	$controler->stash( title => 'Hello resolver!' );
+	
+    my $resolver = Mojolicious::Plugin::Cms::Resolver->new;
+	my $resolved = $resolver->resolve( $controller, '<title runat="server"><%= $title %></title>');
+		
+	$resolver->bind(span => sub { $_[1]->stash( foo => 'bar' ) });
+	$resolved = $resolver->resolve( $controller, '<span runat="server"><%= $foo %></span>');
+	
+=head1 DESCRIPTION

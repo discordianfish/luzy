@@ -11,6 +11,7 @@ use I18N::LangTags::Detect ();
 
 our $VERSION = '0.011';
 
+use Devel::Cycle;
 use Mojo::DOM;
 use Mojo::Loader;
 use Mojolicious::Plugin::Cms::Resolver::DOM;
@@ -49,6 +50,13 @@ __PACKAGE__->attr(
     }
 );
 
+sub _add_binding {
+	my ($self) = @_;
+	
+	# Predefined resolver bindings
+    $self->resolver->bind(time => sub {time});	
+}
+
 sub register {
     my ($self, $app, $conf) = @_;
 
@@ -61,6 +69,9 @@ sub register {
     $app->plugins->add_hook(
         before_dispatch => sub {
             my ($s, $c) = @_;
+			
+			find_cycle($c);
+			
             undef $content;
 
             # eperimental: return when static content is to be served
@@ -116,13 +127,7 @@ sub register {
         }
     );
     $app->helper(resolve => sub { $self->resolver->resolve(@_) });
-    $app->helper(
-        bind => sub {
-            shift if ref $_[0];
-            return $self->resolver->bind(@_);
-        }
-    );
-
+    
     # Helper generation for source methods
     for my $m (
         qw/all_tags all_categories backup delete exists
@@ -150,11 +155,7 @@ sub register {
             }
         );
     }
-
-    # Predefined resolver bindings
-    $self->resolver->bind(time => sub {time});
-
-
+    
     $app->log->info('Cms loaded');
 
     # No admin functionality needed shortcut
