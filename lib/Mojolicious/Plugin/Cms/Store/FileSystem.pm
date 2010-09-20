@@ -5,6 +5,7 @@ use strict;
 use warnings;
 
 use Carp;
+use Encode;
 use IO::Dir    ();
 use IO::File   ();
 use File::Path ();
@@ -12,6 +13,7 @@ use File::stat ();
 use File::Spec ();
 use Mojo::JSON ();
 
+use constant CHUNK_SIZE => $ENV{MOJO_CHUNK_SIZE} || 262144;
 
 my $META_START = "<!-- METADATA ";
 my $META_END   = " -->";
@@ -74,7 +76,8 @@ sub backup {
       unless -d $dir;
 
     if (defined(my $fh = IO::File->new("> $fs_path"))) {
-        $fh->binmode($self->binmode_layer);
+
+        # $fh->binmode($self->binmode_layer);
         print $fh sprintf("%s%s%s\n",
             $META_START, Mojo::JSON->new->encode($content->meta_data), $META_END);
         print $fh $content->raw || '';
@@ -242,9 +245,13 @@ sub _load_content {
     my $stat = File::stat::stat($fs_path);
     my $content;
     if (defined(my $fh = IO::File->new("< $fs_path"))) {
-        $fh->binmode($self->binmode_layer);
 
-        my $raw = do { local $/; <$fh> };
+        # $fh->binmode($self->binmode_layer);
+
+        my $raw = '';
+        while ($fh->sysread(my $buffer, CHUNK_SIZE, 0)) {
+            $raw .= $buffer;
+        }
         my $meta;
         if ($raw =~ s{$META_REGEX}{}) {
             $meta = Mojo::JSON->new->decode($1);

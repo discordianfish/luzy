@@ -17,68 +17,61 @@ use Mojolicious::Plugin::Cms::Resolver::DOM;
 use Mojolicious::Plugin::Cms::Store::Cache;
 use Mojolicious::Plugin::Cms::Store::FileSystem;
 
-__PACKAGE__->attr( app => undef );
-__PACKAGE__->attr(
-    cache => sub { $_[0]->cache_class->new( $_[0]->cache_options ) } );
-__PACKAGE__->attr(
-    cache_class => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' } );
-__PACKAGE__->attr( cache_options => sub { $_[0]->conf->{cache_options} || {} }
-);
-__PACKAGE__->attr(
-    condition_name => sub { $_[0]->conf->{condition_name} || 'cms' } );
-__PACKAGE__->attr( conf => sub { {} } );
-__PACKAGE__->attr(
-    default_format => sub { lc( $_[0]->conf->{default_format} || 'markdown' ) }
-);
-__PACKAGE__->attr(
-    default_language => sub { lc( $_[0]->conf->{default_language} || 'en' ) } );
-__PACKAGE__->attr( index => sub { $_[0]->conf->{index} || 'index' } );
+__PACKAGE__->attr(app            => undef);
+__PACKAGE__->attr(cache          => sub { $_[0]->cache_class->new($_[0]->cache_options) });
+__PACKAGE__->attr(cache_class    => sub { $_[0]->conf->{cache_class} || 'Cache::FileCache' });
+__PACKAGE__->attr(cache_options  => sub { $_[0]->conf->{cache_options} || {} });
+__PACKAGE__->attr(condition_name => sub { $_[0]->conf->{condition_name} || 'cms' });
+__PACKAGE__->attr(conf             => sub { {} });
+__PACKAGE__->attr(default_format   => sub { lc($_[0]->conf->{default_format} || 'markdown') });
+__PACKAGE__->attr(default_language => sub { lc($_[0]->conf->{default_language} || 'en') });
+__PACKAGE__->attr(index            => sub { $_[0]->conf->{index} || 'index' });
 __PACKAGE__->attr(
     resolver => sub {
         $_[0]->conf->{resolver}
-          || Mojolicious::Plugin::Cms::Resolver::DOM->new( cms => $_[0] );
+          || Mojolicious::Plugin::Cms::Resolver::DOM->new(cms => $_[0]);
     }
 );
 __PACKAGE__->attr(
     store => sub {
         Mojolicious::Plugin::Cms::Store::FileSystem->new(
             cms => $_[0],
-            %{ $_[0]->store_options }
+            %{$_[0]->store_options}
         );
     }
 );
-__PACKAGE__->attr( store_options => sub { $_[0]->conf->{store_options} || {} }
-);
+__PACKAGE__->attr(store_options => sub { $_[0]->conf->{store_options} || {} });
 __PACKAGE__->attr(
     _store => sub {
         $ENV{MOJO_RELOAD}
           ? $_[0]->store
-          : Mojolicious::Plugin::Cms::Store::Cache->new( cms => $_[0] );
+          : Mojolicious::Plugin::Cms::Store::Cache->new(cms => $_[0]);
     }
 );
 
 sub register {
-    my ( $self, $app, $conf ) = @_;
+    my ($self, $app, $conf) = @_;
 
     $self->app($app);
-    $self->conf( $conf ||= {} );
+    $self->conf($conf ||= {});
 
     my $def_language = $self->default_language;
 
     my $content;
     $app->plugins->add_hook(
         before_dispatch => sub {
-            my ( $s, $c ) = @_;
-            undef $content;			
+            my ($s, $c) = @_;
+            undef $content;
 
-            # eperimental: return when static content is to be served            
-			my $static_file = File::Spec->catfile( $self->app->static->root, $c->tx->req->url->path );
-			my $is_static = (-e $static_file && -f $static_file) || 0;
-			return if $is_static;
-			
-			# Empty values
-			$c->stash( cms_language => undef );
-            $c->stash( cms_content  => undef );
+            # eperimental: return when static content is to be served
+            my $static_file =
+              File::Spec->catfile($self->app->static->root, $c->tx->req->url->path);
+            my $is_static = (-e $static_file && -f $static_file) || 0;
+            return if $is_static;
+
+            # Empty values
+            $c->stash(cms_language => undef);
+            $c->stash(cms_content  => undef);
 
             my @languages = I18N::LangTags::implicate_supers(
                 I18N::LangTags::Detect->http_accept_langs(
@@ -87,27 +80,27 @@ sub register {
             );
 
             # clone, dont want to modify original path
-            if ( defined( my $p = $c->access_path ) ) {
+            if (defined(my $p = $c->access_path)) {
                 my %seen = ();
-                foreach my $l ( map { lc } @languages, $def_language ) {
+                foreach my $l (map {lc} @languages, $def_language) {
                     next if $seen{$l}++;
-                    next unless $self->_store->exists( $p, $l );
+                    next unless $self->_store->exists($p, $l);
 
-                    $content = $self->_store->load( $p, $l );
+                    $content = $self->_store->load($p, $l);
 
-                    $c->stash( cms_language => $l );
-                    $c->stash( cms_content  => $content );
+                    $c->stash(cms_language => $l);
+                    $c->stash(cms_content  => $content);
                     last;
                 }
             }
         }
     );
-    
+
     my $condition_name = $self->condition_name;
     $app->routes->add_condition(
         $condition_name => sub {
-            my ( $route, $tx, $captures, $arg ) = @_;
-            return ( $arg && $content ) ? $captures : undef;
+            my ($route, $tx, $captures, $arg) = @_;
+            return ($arg && $content) ? $captures : undef;
         }
     );
 
@@ -116,21 +109,16 @@ sub register {
             my $c = shift;
             my $p = shift || $c->tx->req->url->path->clone;
 
-            $p = $p->append( $self->index )
+            $p = $p->append($self->index)
               if $p->trailing_slash && 1 == length $p;
 
             return $p;
         }
     );
+    $app->helper(resolve => sub { $self->resolver->resolve(@_) });
     $app->helper(
-        resolve => sub {
+        bind => sub {
             shift if ref $_[0];
-            return $self->resolver->resolve(@_);
-        }
-    );
-	$app->helper(
-        bind => sub {     
-			shift if ref $_[0];
             return $self->resolver->bind(@_);
         }
     );
@@ -149,28 +137,22 @@ sub register {
         );
     }
     for my $m (qw/default_format default_language/) {
-        $app->helper( "cms_$m" => sub { return $self->$m } );
+        $app->helper("cms_$m" => sub { return $self->$m });
     }
 
     # Format helpers
-    for my $method (
-        [ 'date',     '%d.%m.%Y' ],
-        [ 'time',     '%T' ],
-        [ 'datetime', '%d.%m.%Y %T' ]
-      )
-    {
+    for my $method (['date', '%d.%m.%Y'], ['time', '%T'], ['datetime', '%d.%m.%Y %T']) {
         $app->helper(
             'cms_format_' . $method->[0] => sub {
-                my ( $c, $epoch, $format ) = @_;
+                my ($c, $epoch, $format) = @_;
                 $format ||= $method->[1];
-                return DateTime->from_epoch( epoch => $epoch )
-                  ->strftime($format);
+                return DateTime->from_epoch(epoch => $epoch)->strftime($format);
             }
         );
     }
-	
-	# Predefined resolver bindings
-    $self->resolver->bind( time => sub { time } );
+
+    # Predefined resolver bindings
+    $self->resolver->bind(time => sub {time});
 
 
     $app->log->info('Cms loaded');
@@ -179,20 +161,19 @@ sub register {
     return if $conf->{no_admin_route};
 
     my $r = $conf->{admin_route};
-    $r = $app->routes->bridge('/admin')->to( cb => sub { 1 } )
+    $r = $app->routes->bridge('/admin')->to(cb => sub {1})
       unless defined $r;
 
     # Admin routes
     my %defaults = (
         namespace  => 'Mojolicious::Plugin::Cms::Controller',
         controller => 'admin',
-        cb => undef,    # overwrite bridges with callbacks
+        cb         => undef,                                    # overwrite bridges with callbacks
     );
-    $r->route('/')->to( %defaults, action => 'list' )->name('cms_admin_list');
-    $r->route('/create')->to( %defaults, action => 'edit' )
-      ->name('cms_admin_create');
-    $r->route( '/edit(*path)', path => qr(/?.+) )
-      ->to( %defaults, action => 'edit' )->name('cms_admin_edit');
+    $r->route('/')->to(%defaults, action => 'list')->name('cms_admin_list');
+    $r->route('/create')->to(%defaults, action => 'edit')->name('cms_admin_create');
+    $r->route('/edit(*path)', path => qr(/?.+))->to(%defaults, action => 'edit')
+      ->name('cms_admin_edit');
 
     $app->log->info('Admin routes configured');
 }

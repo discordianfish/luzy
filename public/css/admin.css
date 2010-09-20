@@ -176,11 +176,8 @@ width:101%;
 }
 
 #cmd_edit_content .prompt {
-color:#bbb;
-position:absolute;
 font-size:1.7em;
 padding:8px;
-float:right;
 }
 
 #cms_edit_content_buttons {
