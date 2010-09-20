@@ -7,9 +7,8 @@ use warnings;
 use Carp;
 use Encode;
 use File::Spec;
-use Mojo::ByteStream 'b';
 
-__PACKAGE__->attr([qw/cms parser template_handler template_format/]);
+__PACKAGE__->attr([qw/cms parser/]);
 __PACKAGE__->attr(app      => sub { $_[0]->cms->app });
 __PACKAGE__->attr(bindings => sub { {} });
 __PACKAGE__->attr(template_subdir => 'resolver');
