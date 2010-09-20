@@ -87,3 +87,6 @@ Mojolicious::Plugin::Cms::Resolver - Resolves server bindings inside XML
 	$resolved = $resolver->resolve( $controller, '<span runat="server"><%= $foo %></span>');
 	
 =head1 DESCRIPTION
+
+=cut
+
