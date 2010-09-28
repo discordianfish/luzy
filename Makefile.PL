@@ -13,7 +13,7 @@ WriteMakefile(
     PL_FILES      => {},
     PREREQ_PM     => {
         'Cache::Cache'   => 1.06,
-        'DateTime'       => 0.61,
+        'DateTime'       => 0.53,
         'Mojolicious'    => 0.9999,
         'Text::Markdown' => 1.000031,
     },
