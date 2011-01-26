@@ -218,7 +218,11 @@ sub path_to {
 
     return undef unless my @path = File::Spec->no_upwards(grep {$_} @_);
 
-    my $retval = File::Spec->catfile($self->directory, @path);
+    my $rel_path = File::Spec->catfile('content', @path);
+    warn 'relpath' . $rel_path;
+    warn 'altval: '. File::Spec->catfile($self->directory, @path);
+    my $retval = $self->app->home->rel_file($rel_path);
+    warn "retval: $retval";
     $retval .= ".$language" if $language;
     $retval .= $self->extension;
     return $retval;
@@ -243,7 +247,6 @@ sub _load_content {
         $language = lc($2 || $self->cms->default_language);
     }
     $id .= ".$timestamp" if $timestamp;
-
     my $stat = File::stat::stat($fs_path);
     my $content;
     if (defined(my $fh = IO::File->new("< $fs_path"))) {
