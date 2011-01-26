@@ -259,7 +259,7 @@ sub _load_content {
         else {
             $self->app->log->debug('No metadata found.');
         }
-        Mojo::Util::encode $self->encoding, $raw;
+        Mojo::Util::decode $self->encoding, $raw;
         $content = Mojolicious::Plugin::Cms::Content->new(
             id       => $id,
             path     => $path,
