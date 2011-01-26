@@ -218,6 +218,8 @@ sub path_to {
 
     return undef unless my @path = File::Spec->no_upwards(grep {$_} @_);
 
+    $path[0] =~ s{^/}{};
+
     my $retval = File::Spec->catfile($self->directory, @path);
     $retval .= ".$language" if $language;
     $retval .= $self->extension;
