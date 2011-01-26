@@ -12,6 +12,7 @@ use File::Path ();
 use File::stat ();
 use File::Spec ();
 use Mojo::JSON ();
+use Mojo::Util ();
 
 use constant CHUNK_SIZE => $ENV{MOJO_CHUNK_SIZE} || 262144;
 
@@ -21,7 +22,7 @@ my $META_REGEX = qr/[\r\n\s]*<!--[\r\n\s]*METADATA[\r\n\s]*({.*})[\r\n\s]*-->[\r
 
 use Mojolicious::Plugin::Cms::Content ();
 
-__PACKAGE__->attr(binmode_layer => ':encoding(utf8)');
+__PACKAGE__->attr(encoding      => 'UTF-8');
 __PACKAGE__->attr(directory     => sub { $_[0]->app->home->rel_dir('content') });
 __PACKAGE__->attr(extension     => '.cms');
 __PACKAGE__->attr(make_options  => sub { {owner => 'nobody', group => 'nogroup'} });
@@ -77,10 +78,11 @@ sub backup {
 
     if (defined(my $fh = IO::File->new("> $fs_path"))) {
 
-        # $fh->binmode($self->binmode_layer);
         print $fh sprintf("%s%s%s\n",
             $META_START, Mojo::JSON->new->encode($content->meta_data), $META_END);
-        print $fh $content->raw || '';
+        my $raw = $content->raw;
+        Mojo::Util::encode 'UTF-8', $raw;
+        print $fh $raw || '';
         return $content;
     }
 
@@ -246,8 +248,6 @@ sub _load_content {
     my $content;
     if (defined(my $fh = IO::File->new("< $fs_path"))) {
 
-        # $fh->binmode($self->binmode_layer);
-
         my $raw = '';
         while ($fh->sysread(my $buffer, CHUNK_SIZE, 0)) {
             $raw .= $buffer;
@@ -259,6 +259,7 @@ sub _load_content {
         else {
             $self->app->log->debug('No metadata found.');
         }
+        Mojo::Util::encode $self->encoding, $raw;
         $content = Mojolicious::Plugin::Cms::Content->new(
             id       => $id,
             path     => $path,
