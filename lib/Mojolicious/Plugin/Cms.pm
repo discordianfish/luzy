@@ -115,7 +115,8 @@ sub register {
     $app->helper(
         access_path => sub {
             my $c = shift;
-            my $p = shift || $c->tx->req->url->path->clone;
+            my $p = shift;
+            $p = $p ? Mojo::Path->new($p) : $c->tx->req->url->path->clone;
 
             $p = $p->append($self->index)
               if $p->trailing_slash && 1 == length $p;
